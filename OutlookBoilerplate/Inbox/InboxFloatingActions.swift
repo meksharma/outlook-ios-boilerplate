@@ -21,6 +21,9 @@ import FluentUI
 import SwiftUI
 
 struct InboxFloatingActions: View {
+    let onComposeTap: () -> Void
+    let onCopilotTap: () -> Void
+
     var body: some View {
         HStack(spacing: 12) {
             composeButton
@@ -31,7 +34,7 @@ struct InboxFloatingActions: View {
     }
 
     private var composeButton: some View {
-        Button(action: {}) {
+        Button(action: onComposeTap) {
             Image("ComposeIcon")
                 .renderingMode(.template)
                 .resizable()
@@ -49,7 +52,7 @@ struct InboxFloatingActions: View {
     }
 
     private var copilotButton: some View {
-        Button(action: {}) {
+        Button(action: onCopilotTap) {
             Image("CopilotIcon")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -72,7 +75,7 @@ struct InboxFloatingActions: View {
             Spacer()
             HStack {
                 Spacer()
-                InboxFloatingActions()
+                InboxFloatingActions(onComposeTap: {}, onCopilotTap: {})
             }
         }
     }

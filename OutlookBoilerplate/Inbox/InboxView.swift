@@ -15,6 +15,7 @@ import SwiftUI
 
 struct InboxView: View {
     @State private var navigationPath = NavigationPath()
+    @State private var showingCopilotSheet = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -22,6 +23,11 @@ struct InboxView: View {
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(for: InboxThread.self) { thread in
                     ReadingPaneView(thread: thread)
+                }
+                .sheet(isPresented: $showingCopilotSheet) {
+                    CopilotSheet()
+                        .presentationDetents([.medium, .large])
+                        .presentationDragIndicator(.visible)
                 }
         }
     }
@@ -32,8 +38,11 @@ struct InboxView: View {
                 InboxHeader()
                 threadList
             }
-            InboxFloatingActions()
-                .padding(.bottom, 8)
+            InboxFloatingActions(
+                onComposeTap: { /* M5 wires this to Compose sheet */ },
+                onCopilotTap: { showingCopilotSheet = true }
+            )
+            .padding(.bottom, 8)
         }
         .background(Color(uiColor: .systemBackground))
     }
