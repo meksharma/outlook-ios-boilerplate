@@ -21,6 +21,7 @@ import FluentUI
 import SwiftUI
 
 struct InboxHeader: View {
+    let onAvatarTap: () -> Void
     @State private var selectedTab: FocusedTab = .focused
 
     enum FocusedTab: Hashable { case focused, other }
@@ -90,14 +91,16 @@ struct InboxHeader: View {
     }
 
     /// Avatar in the leading position is the side-drawer trigger in production
-    /// (see `MailAvatarMenuLargeTitleView.swift` — the navigation menu button is co-located
-    /// with the avatar). Tap behavior wires up in M6 (Side drawer).
+    /// (see `MailAvatarMenuLargeTitleView.swift:228` — `handleNavigationButtonTapped`).
     private var avatarMenuButton: some View {
-        Avatar(
-            style: .default,
-            size: .size32,
-            primaryText: "Jay Cho"
-        )
+        Button(action: onAvatarTap) {
+            Avatar(
+                style: .default,
+                size: .size32,
+                primaryText: "Jay Cho"
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private func chromeIcon(systemName: String, showsBadge: Bool = false) -> some View {
@@ -127,6 +130,6 @@ struct InboxHeader: View {
 }
 
 #Preview {
-    InboxHeader()
+    InboxHeader(onAvatarTap: {})
         .fluentTheme(FluentTheme.shared)
 }

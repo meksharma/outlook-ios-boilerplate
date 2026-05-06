@@ -14,8 +14,10 @@ import FluentUI
 import SwiftUI
 
 struct InboxView: View {
+    @Binding var showingSideDrawer: Bool
+    @Binding var showingCopilotSheet: Bool
+
     @State private var navigationPath = NavigationPath()
-    @State private var showingCopilotSheet = false
     @State private var showingComposeSheet = false
 
     var body: some View {
@@ -24,11 +26,6 @@ struct InboxView: View {
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(for: InboxThread.self) { thread in
                     ReadingPaneView(thread: thread)
-                }
-                .sheet(isPresented: $showingCopilotSheet) {
-                    CopilotSheet()
-                        .presentationDetents([.medium, .large])
-                        .presentationDragIndicator(.visible)
                 }
                 .fullScreenCover(isPresented: $showingComposeSheet) {
                     ComposeView()
@@ -39,7 +36,7 @@ struct InboxView: View {
     private var inboxContent: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(spacing: 0) {
-                InboxHeader()
+                InboxHeader(onAvatarTap: { showingSideDrawer = true })
                 threadList
             }
             InboxFloatingActions(
@@ -66,6 +63,9 @@ struct InboxView: View {
 }
 
 #Preview {
-    InboxView()
-        .fluentTheme(FluentTheme.shared)
+    InboxView(
+        showingSideDrawer: .constant(false),
+        showingCopilotSheet: .constant(false)
+    )
+    .fluentTheme(FluentTheme.shared)
 }
