@@ -50,12 +50,17 @@ struct CopilotSheet: View {
         .padding(.top, 16)
         .padding(.bottom, 12)
         .background(Color(uiColor: .systemBackground))
-        // Known limitation: production raises the keyboard automatically on sheet open
-        // (input is focused immediately). SwiftUI's @FocusState in a `.sheet` with
-        // `.presentationDetents` silently drops focus changes during sheet presentation
-        // — tested with `.onAppear` + DispatchQueue (0.25s, 0.6s, 0.8s delays) and
-        // `.task` + Task.sleep, neither works reliably. Designers tap the field to
-        // focus, which is standard iOS interaction.
+        .onAppear {
+            // Production behavior: keyboard rises immediately when the sheet opens.
+            // SIMULATOR GOTCHA: if the iOS Simulator's "Connect Hardware Keyboard"
+            // is enabled (the default), the soft keyboard stays hidden even though
+            // the field is focused. To see it during development, in the Simulator
+            // menu bar pick: I/O → Keyboard → uncheck "Connect Hardware Keyboard"
+            // (or press ⌘⇧K). On real devices this isn't an issue.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                inputFocused = true
+            }
+        }
     }
 
     private var suggestionChipsRow: some View {
