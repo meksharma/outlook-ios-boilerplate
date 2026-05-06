@@ -16,6 +16,7 @@ import SwiftUI
 struct InboxView: View {
     @State private var navigationPath = NavigationPath()
     @State private var showingCopilotSheet = false
+    @State private var showingComposeSheet = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -29,6 +30,9 @@ struct InboxView: View {
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
                 }
+                .fullScreenCover(isPresented: $showingComposeSheet) {
+                    ComposeView()
+                }
         }
     }
 
@@ -39,7 +43,7 @@ struct InboxView: View {
                 threadList
             }
             InboxFloatingActions(
-                onComposeTap: { /* M5 wires this to Compose sheet */ },
+                onComposeTap: { showingComposeSheet = true },
                 onCopilotTap: { showingCopilotSheet = true }
             )
             .padding(.bottom, 8)
