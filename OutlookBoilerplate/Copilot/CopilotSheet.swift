@@ -32,10 +32,13 @@ struct CopilotSheet: View {
     @State private var promptText: String = ""
     @FocusState private var inputFocused: Bool
 
-    private let suggestions: [String] = [
-        "What did I miss?",
-        "What needs my reply?",
-        "Unblock me",
+    /// Suggestion prompts shown in the empty / zero-query state. Production loads these
+    /// dynamically from `ZeroQueryMessage`; we hard-code three to match the reference.
+    /// "Voice catch-up" carries a waveform icon to mirror production.
+    private let suggestions: [Suggestion] = [
+        Suggestion(title: "Voice catch-up", iconSystemName: "waveform"),
+        Suggestion(title: "What did I miss?", iconSystemName: nil),
+        Suggestion(title: "What needs my reply?", iconSystemName: nil),
     ]
 
     var body: some View {
@@ -47,13 +50,19 @@ struct CopilotSheet: View {
         .padding(.top, 16)
         .padding(.bottom, 12)
         .background(Color(uiColor: .systemBackground))
+        // Known limitation: production raises the keyboard automatically on sheet open
+        // (input is focused immediately). SwiftUI's @FocusState in a `.sheet` with
+        // `.presentationDetents` silently drops focus changes during sheet presentation
+        // — tested with `.onAppear` + DispatchQueue (0.25s, 0.6s, 0.8s delays) and
+        // `.task` + Task.sleep, neither works reliably. Designers tap the field to
+        // focus, which is standard iOS interaction.
     }
 
     private var suggestionChipsRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(suggestions, id: \.self) { suggestion in
-                    SuggestionChip(title: suggestion)
+                ForEach(suggestions) { suggestion in
+                    SuggestionChip(suggestion: suggestion)
                 }
             }
             .padding(.horizontal, 16)
@@ -87,13 +96,14 @@ struct CopilotSheet: View {
         .padding(.horizontal, 16)
     }
 
+    /// Voice / listening button. Production shows `MicListeningButton` with a real-time
+    /// waveform when listening (file: `VoiceInputView.swift` line 80, `WaveformView`).
+    /// We render the listening-state visual statically using SF Symbol `waveform` — closer
+    /// to the production reference than the static mic asset alone.
     private var voiceButton: some View {
         Button(action: {}) {
-            Image("MicIcon")
-                .renderingMode(.template)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 18, height: 18)
+            Image(systemName: "waveform")
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
                 .background(
@@ -104,22 +114,40 @@ struct CopilotSheet: View {
     }
 }
 
-/// Suggestion chip — production uses `CopilotUIKit.ShortcutPill` (a SwiftUI custom button
-/// with FluentUI tokens). We replicate the visual minimally with a Capsule background.
-private struct SuggestionChip: View {
+private struct Suggestion: Identifiable, Hashable {
+    let id = UUID()
     let title: String
+    let iconSystemName: String?
+}
+
+/// Suggestion chip — production uses `CopilotUIKit.ShortcutPill` (SwiftUI custom button
+/// with FluentUI tokens). We replicate the visual: rounded capsule with subtle border,
+/// optional leading icon. Per the production reference screenshot.
+private struct SuggestionChip: View {
+    let suggestion: Suggestion
 
     var body: some View {
         Button(action: {}) {
-            Text(title)
-                .font(.system(size: 15, weight: .regular))
-                .foregroundStyle(.primary)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(
-                    Capsule()
-                        .fill(Color(uiColor: .secondarySystemBackground))
-                )
+            HStack(spacing: 8) {
+                if let icon = suggestion.iconSystemName {
+                    Image(systemName: icon)
+                        .font(.system(size: 15, weight: .regular))
+                        .foregroundStyle(.primary)
+                }
+                Text(suggestion.title)
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundStyle(.primary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(Color(uiColor: .secondarySystemBackground))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+            )
         }
         .buttonStyle(.plain)
     }

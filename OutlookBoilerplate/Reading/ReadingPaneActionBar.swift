@@ -49,6 +49,12 @@ struct ReadingPaneActionBar: View {
         )
     }
 
+    /// Outlook brand blue. Production DAB action icons render in this color (Outlook's
+    /// actionable-icon convention), not in `.primary` / system foreground.
+    private var actionTint: Color {
+        Color(uiColor: GlobalTokens.brandColor(.comm80))
+    }
+
     private var replyAllPill: some View {
         Button(action: {}) {
             HStack(spacing: 4) {
@@ -59,7 +65,7 @@ struct ReadingPaneActionBar: View {
                 Text("Reply All")
                     .font(.system(size: 15, weight: .regular))
             }
-            .foregroundStyle(.primary)
+            .foregroundStyle(actionTint)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
         }
@@ -70,7 +76,7 @@ struct ReadingPaneActionBar: View {
         Button(action: {}) {
             Image(systemName: systemName)
                 .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(.primary)
+                .foregroundStyle(actionTint)
                 .frame(width: 36, height: 36)
                 .overlay(alignment: .topTrailing) {
                     if showsBadge {

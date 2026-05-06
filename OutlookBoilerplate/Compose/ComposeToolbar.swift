@@ -41,11 +41,17 @@ struct ComposeToolbar: View {
         .padding(.bottom, 12)
     }
 
+    /// Outlook brand blue. Production DAB toolbar icons (across compose, reading pane,
+    /// inbox chrome) render in this color, not in `.primary`.
+    private var actionTint: Color {
+        Color(uiColor: GlobalTokens.brandColor(.comm80))
+    }
+
     private func toolbarIcon(systemName: String) -> some View {
         Button(action: {}) {
             Image(systemName: systemName)
                 .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(.primary)
+                .foregroundStyle(actionTint)
                 .frame(width: 36, height: 36)
         }
         .buttonStyle(.plain)
