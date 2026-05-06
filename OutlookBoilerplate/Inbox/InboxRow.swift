@@ -20,6 +20,7 @@ import SwiftUI
 
 struct InboxRow: View {
     let thread: InboxThread
+    let onTap: () -> Void
 
     var body: some View {
         ListItem(
@@ -41,7 +42,7 @@ struct InboxRow: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             },
-            action: {}
+            action: onTap
         )
         .titleLineLimit(1)
         .subtitleLineLimit(1)
@@ -57,8 +58,8 @@ struct InboxRow: View {
 
 #Preview {
     VStack(spacing: 0) {
-        InboxRow(thread: sampleThreads[0])
-        InboxRow(thread: sampleThreads[5])
+        InboxRow(thread: sampleThreads[0], onTap: {})
+        InboxRow(thread: sampleThreads[5], onTap: {})
     }
     .fluentTheme(FluentTheme.shared)
 }
