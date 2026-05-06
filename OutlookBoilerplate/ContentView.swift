@@ -2,20 +2,29 @@
 //  ContentView.swift
 //  OutlookBoilerplate
 //
-//  Created by Jay Cho-Works on 5/5/26.
-//
 
+import FluentUI
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        VStack(spacing: 24) {
+            Text("Outlook iOS Boilerplate")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            Text("M1 verification — the button below should render in Outlook brand blue.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            Button(action: {}) {
+                Text("Outlook-themed Button")
+            }
+            .buttonStyle(FluentButtonStyle(style: .accent))
         }
         .padding()
+        .fluentTheme(FluentTheme.shared)
     }
 }
 

@@ -2,13 +2,16 @@
 //  OutlookBoilerplateApp.swift
 //  OutlookBoilerplate
 //
-//  Created by Jay Cho-Works on 5/5/26.
-//
 
+import OutlookBackdrop
 import SwiftUI
 
 @main
 struct OutlookBoilerplateApp: App {
+    init() {
+        OutlookBackdrop.applyToFluentTheme()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

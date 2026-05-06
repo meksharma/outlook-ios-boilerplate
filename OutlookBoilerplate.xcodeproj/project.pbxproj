@@ -6,13 +6,31 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		7ED1D7052FAB896100568D8B /* FluentUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7ED1D7042FAB896100568D8B /* FluentUI */; };
+		7ED1D70A2FAB89FB00568D8B /* OutlookBackdrop in Frameworks */ = {isa = PBXBuildFile; productRef = 7ED1D7092FAB89FB00568D8B /* OutlookBackdrop */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		7ED1D6EF2FAA84D000568D8B /* OutlookBoilerplate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OutlookBoilerplate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7ED1D7072FAB89BF00568D8B /* Exceptions for "OutlookBoilerplate" folder in "OutlookBoilerplate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				OutlookBackdrop,
+			);
+			target = 7ED1D6EE2FAA84D000568D8B /* OutlookBoilerplate */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		7ED1D6F12FAA84D000568D8B /* OutlookBoilerplate */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7ED1D7072FAB89BF00568D8B /* Exceptions for "OutlookBoilerplate" folder in "OutlookBoilerplate" target */,
+			);
 			path = OutlookBoilerplate;
 			sourceTree = "<group>";
 		};
@@ -23,6 +41,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7ED1D70A2FAB89FB00568D8B /* OutlookBackdrop in Frameworks */,
+				7ED1D7052FAB896100568D8B /* FluentUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +53,7 @@
 			isa = PBXGroup;
 			children = (
 				7ED1D6F12FAA84D000568D8B /* OutlookBoilerplate */,
+				7ED1D7082FAB89FB00568D8B /* Frameworks */,
 				7ED1D6F02FAA84D000568D8B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +64,13 @@
 				7ED1D6EF2FAA84D000568D8B /* OutlookBoilerplate.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		7ED1D7082FAB89FB00568D8B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -65,6 +93,8 @@
 			);
 			name = OutlookBoilerplate;
 			packageProductDependencies = (
+				7ED1D7042FAB896100568D8B /* FluentUI */,
+				7ED1D7092FAB89FB00568D8B /* OutlookBackdrop */,
 			);
 			productName = OutlookBoilerplate;
 			productReference = 7ED1D6EF2FAA84D000568D8B /* OutlookBoilerplate.app */;
@@ -94,6 +124,9 @@
 			);
 			mainGroup = 7ED1D6E62FAA84D000568D8B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7ED1D7032FAB896100568D8B /* XCRemoteSwiftPackageReference "fluentui-apple" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7ED1D6F02FAA84D000568D8B /* Products */;
 			projectDirPath = "";
@@ -328,6 +361,29 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7ED1D7032FAB896100568D8B /* XCRemoteSwiftPackageReference "fluentui-apple" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/fluentui-apple";
+			requirement = {
+				kind = exactVersion;
+				version = 0.35.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7ED1D7042FAB896100568D8B /* FluentUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7ED1D7032FAB896100568D8B /* XCRemoteSwiftPackageReference "fluentui-apple" */;
+			productName = FluentUI;
+		};
+		7ED1D7092FAB89FB00568D8B /* OutlookBackdrop */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OutlookBackdrop;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7ED1D6E72FAA84D000568D8B /* Project object */;
 }
