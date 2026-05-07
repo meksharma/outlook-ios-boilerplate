@@ -12,3 +12,5 @@ configuration:
     role: Maintain
   - member: kafrederick
     role: Maintain
+  - member: junhwancho
+    role: Maintain
