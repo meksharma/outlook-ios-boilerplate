@@ -171,7 +171,10 @@ private struct SuggestionChip: View {
                 Capsule().fill(fluentTheme.swiftUIColor(.background3))
             )
             .overlay(
-                Capsule().stroke(fluentTheme.swiftUIColor(.strokeAlpha2), lineWidth: 0.5)
+                /// `.strokeAlpha2` (10% inverting black/white) lands in a later FluentUI Apple
+                /// release; 0.35.0 has no equivalent. `.foreground1` at 0.08 reproduces the
+                /// original SwiftUI `Color.primary.opacity(0.08)` look while staying tokenized.
+                Capsule().stroke(fluentTheme.swiftUIColor(.foreground1).opacity(0.08), lineWidth: 0.5)
             )
         }
         .buttonStyle(.plain)
