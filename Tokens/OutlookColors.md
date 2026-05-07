@@ -75,9 +75,10 @@ when adding new UI.
 
 ### Strokes
 
-| Token | Use |
-|---|---|
-| `strokeAlpha2` | Subtle chip / capsule strokes (10% black light, 10% white dark) |
+For subtle chip / capsule strokes use `foreground1.opacity(0.08)` —
+0.35.0 doesn't ship `strokeAlpha1` / `strokeAlpha2` (those land in a
+later FluentUI Apple release). The opacity-on-foreground pattern stays
+tokenized and auto-inverts for dark mode.
 
 ### Avoid
 
@@ -149,5 +150,5 @@ Color(uiColor: .secondarySystemBackground)
                               →  background3
 .foregroundStyle(.primary)    →  foreground1
 .foregroundStyle(.secondary)  →  foreground2
-Color.primary.opacity(0.08)   →  strokeAlpha2
+Color.primary.opacity(0.08)   →  foreground1.opacity(0.08)
 ```
