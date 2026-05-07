@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__fluent__search_fluent_components",
+      "mcp__fluent__search_fluent_tokens",
+      "mcp__fluent__search_fluent_icons",
+      "mcp__fluent__validate_fluent_component",
+      "mcp__fluent__ask_fluent_agent"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "fluent",
+    "figma"
+  ]
+}

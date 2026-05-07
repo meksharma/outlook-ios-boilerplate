@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp"
+    },
+    "fluent": {
+      "type": "http",
+      "url": "http://localhost:8000/mcp/server"
+    }
+  }
+}
