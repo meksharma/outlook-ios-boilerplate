@@ -58,31 +58,35 @@ struct ContentView: View {
 }
 
 private struct CalendarPlaceholder: View {
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "calendar")
                 .font(.system(size: 48))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             Text("Calendar")
                 .font(.title2.weight(.semibold))
             Text("Visual-only in Phase 1.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
         }
     }
 }
 
 private struct AppsPlaceholder: View {
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "square.grid.2x2.fill")
                 .font(.system(size: 48))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             Text("Apps")
                 .font(.title2.weight(.semibold))
             Text("Visual-only in Phase 1.")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
         }
     }
 }

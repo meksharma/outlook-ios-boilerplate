@@ -24,6 +24,8 @@ struct InboxFloatingActions: View {
     let onComposeTap: () -> Void
     let onCopilotTap: () -> Void
 
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     var body: some View {
         HStack(spacing: 12) {
             composeButton
@@ -44,7 +46,7 @@ struct InboxFloatingActions: View {
                 .frame(width: 56, height: 56)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(uiColor: .systemBackground))
+                        .fill(fluentTheme.swiftUIColor(.background1))
                         .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
                 )
         }
@@ -60,7 +62,7 @@ struct InboxFloatingActions: View {
                 .frame(width: 56, height: 56)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(uiColor: .systemBackground))
+                        .fill(fluentTheme.swiftUIColor(.background1))
                         .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
                 )
         }

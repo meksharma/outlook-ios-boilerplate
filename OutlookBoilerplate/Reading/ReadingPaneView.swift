@@ -22,6 +22,8 @@ import SwiftUI
 struct ReadingPaneView: View {
     let thread: InboxThread
 
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     var body: some View {
         ZStack(alignment: .bottom) {
             ScrollView {
@@ -35,7 +37,7 @@ struct ReadingPaneView: View {
 
             ReadingPaneActionBar()
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(fluentTheme.swiftUIColor(.background1))
         .navigationTitle(thread.subject)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -51,11 +53,11 @@ struct ReadingPaneView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(thread.sender)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
 
                 Text(thread.recipients)
                     .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             }
 
             Spacer()
@@ -63,7 +65,7 @@ struct ReadingPaneView: View {
             VStack(alignment: .trailing, spacing: 4) {
                 Text(thread.timeStamp)
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
 
                 HStack(spacing: 12) {
                     /// Shield icon: production uses a security label / encryption-state icon
@@ -74,7 +76,7 @@ struct ReadingPaneView: View {
 
                     Image(systemName: "ellipsis")
                         .font(.system(size: 16, weight: .regular))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
                 }
             }
         }
@@ -85,7 +87,7 @@ struct ReadingPaneView: View {
     private var bodyContent: some View {
         Text(thread.body)
             .font(.system(size: 16))
-            .foregroundStyle(.primary)
+            .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16)

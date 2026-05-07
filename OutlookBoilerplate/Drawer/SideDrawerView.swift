@@ -34,6 +34,8 @@ import SwiftUI
 struct SideDrawerView: View {
     @Binding var isShowing: Bool
 
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     private let drawerWidth: CGFloat = 320
 
     var body: some View {
@@ -74,7 +76,7 @@ struct SideDrawerView: View {
             bottomChrome
         }
         .frame(width: drawerWidth)
-        .background(Color(uiColor: .systemBackground))
+        .background(fluentTheme.swiftUIColor(.background1))
         .offset(x: isShowing ? 0 : -drawerWidth)
         .allowsHitTesting(isShowing)
     }
@@ -89,12 +91,12 @@ struct SideDrawerView: View {
                     .font(.system(size: 17, weight: .semibold))
                 Text("junhwancho@microsoft.com")
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             }
             Spacer()
             Image(systemName: "alarm")
                 .font(.system(size: 17))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
@@ -136,10 +138,10 @@ struct SideDrawerView: View {
             HStack(spacing: 24) {
                 Image(systemName: "questionmark.circle")
                     .font(.system(size: 22))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
                 Image(systemName: "gearshape")
                     .font(.system(size: 22))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
                 Spacer()
             }
             .padding(.horizontal, 16)
@@ -153,12 +155,12 @@ struct SideDrawerView: View {
         HStack {
             Text(title)
                 .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             Spacer()
             if showsEditPencil {
                 Image(systemName: "square.and.pencil")
                     .font(.system(size: 15))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             }
         }
         .padding(.horizontal, 16)
@@ -176,30 +178,30 @@ struct SideDrawerView: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 18, weight: .regular))
-                .foregroundStyle(isSelected ? brand : .primary)
+                .foregroundStyle(isSelected ? brand : fluentTheme.swiftUIColor(.foreground1))
                 .frame(width: 25, height: 25)
 
             Text(name)
                 .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(isSelected ? brand : .primary)
+                .foregroundStyle(isSelected ? brand : fluentTheme.swiftUIColor(.foreground1))
 
             Spacer()
 
             if let count {
                 Text(formatCount(count))
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
                     .background(
-                        Capsule().fill(Color(uiColor: .secondarySystemBackground))
+                        Capsule().fill(fluentTheme.swiftUIColor(.background3))
                     )
             }
 
             if hasChevron {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             }
         }
         .padding(.horizontal, 16)

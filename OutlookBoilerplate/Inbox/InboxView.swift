@@ -20,6 +20,8 @@ struct InboxView: View {
     @State private var navigationPath = NavigationPath()
     @State private var showingComposeSheet = false
 
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             inboxContent
@@ -45,7 +47,7 @@ struct InboxView: View {
             )
             .padding(.bottom, 8)
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(fluentTheme.swiftUIColor(.background1))
     }
 
     private var threadList: some View {

@@ -22,6 +22,8 @@ struct InboxRow: View {
     let thread: InboxThread
     let onTap: () -> Void
 
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     var body: some View {
         ListItem(
             title: thread.sender,
@@ -40,7 +42,7 @@ struct InboxRow: View {
             trailingContent: {
                 Text(thread.timeStamp)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             },
             action: onTap
         )
@@ -51,7 +53,7 @@ struct InboxRow: View {
 
     private var unreadDot: some View {
         Circle()
-            .fill(thread.isUnread ? Color.accentColor : Color.clear)
+            .fill(thread.isUnread ? fluentTheme.swiftUIColor(.brandForeground1) : Color.clear)
             .frame(width: 8, height: 8)
     }
 }

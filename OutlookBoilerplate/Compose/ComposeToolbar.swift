@@ -20,6 +20,8 @@ import SwiftUI
 /// here is a no-op — typing in the To/Subject/Body fields above it works because
 /// SwiftUI TextField is free, but no toolbar action triggers anything.
 struct ComposeToolbar: View {
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     var body: some View {
         HStack(spacing: 0) {
             toolbarIcon(systemName: "paperclip")
@@ -34,7 +36,7 @@ struct ComposeToolbar: View {
         .padding(.vertical, 6)
         .background(
             Capsule()
-                .fill(Color(uiColor: .systemBackground))
+                .fill(fluentTheme.swiftUIColor(.background1))
                 .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
         )
         .padding(.horizontal, 16)

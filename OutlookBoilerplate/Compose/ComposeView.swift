@@ -26,6 +26,7 @@ import SwiftUI
 
 struct ComposeView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
 
     @State private var toField: String = ""
     @State private var subjectField: String = ""
@@ -49,13 +50,13 @@ struct ComposeView: View {
 
                 ComposeToolbar()
             }
-            .background(Color(uiColor: .systemBackground))
+            .background(fluentTheme.swiftUIColor(.background1))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { dismiss() }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 17, weight: .regular))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
                     }
                 }
                 ToolbarItem(placement: .principal) {
@@ -64,10 +65,10 @@ struct ComposeView: View {
                         VStack(alignment: .leading, spacing: 0) {
                             Text("New Message")
                                 .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
                             Text(senderEmail)
                                 .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
                         }
                     }
                 }
@@ -90,7 +91,7 @@ struct ComposeView: View {
         HStack(alignment: .firstTextBaseline) {
             Text("To:")
                 .font(.system(size: 16))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             TextField("", text: $toField)
                 .font(.system(size: 16))
                 .autocorrectionDisabled()
@@ -98,7 +99,7 @@ struct ComposeView: View {
             Spacer()
             Image(systemName: "chevron.down")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
@@ -108,7 +109,7 @@ struct ComposeView: View {
         HStack(alignment: .firstTextBaseline) {
             Text("Subject:")
                 .font(.system(size: 16))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             TextField("", text: $subjectField)
                 .font(.system(size: 16))
             Spacer()
@@ -144,7 +145,7 @@ struct ComposeView: View {
     private var bodyPlaceholder: some View {
         HStack(spacing: 6) {
             Text("Start typing or")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             Image("CopilotIcon")
                 .resizable()
                 .aspectRatio(contentMode: .fit)

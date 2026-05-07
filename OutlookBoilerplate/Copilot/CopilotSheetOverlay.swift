@@ -33,6 +33,8 @@ import SwiftUI
 struct CopilotSheetOverlay: View {
     @Binding var isShowing: Bool
 
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     @State private var promptText: String = ""
 
     private let suggestions: [Suggestion] = [
@@ -74,7 +76,7 @@ struct CopilotSheetOverlay: View {
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(Color(uiColor: .systemBackground))
+                .fill(fluentTheme.swiftUIColor(.background1))
                 .ignoresSafeArea(edges: .bottom)
         )
         .offset(y: isShowing ? 0 : sheetHeight + 200)
@@ -83,7 +85,7 @@ struct CopilotSheetOverlay: View {
 
     private var dragIndicator: some View {
         Capsule()
-            .fill(Color.secondary.opacity(0.4))
+            .fill(fluentTheme.swiftUIColor(.foreground2).opacity(0.4))
             .frame(width: 36, height: 5)
             .padding(.top, 8)
             .padding(.bottom, 4)
@@ -105,7 +107,7 @@ struct CopilotSheetOverlay: View {
                 Button(action: {}) {
                     Image(systemName: "plus")
                         .font(.system(size: 18, weight: .regular))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
                 }
                 .buttonStyle(.plain)
 
@@ -119,7 +121,7 @@ struct CopilotSheetOverlay: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .background(
-                Capsule().fill(Color(uiColor: .secondarySystemBackground))
+                Capsule().fill(fluentTheme.swiftUIColor(.background3))
             )
 
             voiceButton
@@ -149,25 +151,27 @@ private struct Suggestion: Identifiable, Hashable {
 private struct SuggestionChip: View {
     let suggestion: Suggestion
 
+    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+
     var body: some View {
         Button(action: {}) {
             HStack(spacing: 8) {
                 if let icon = suggestion.iconSystemName {
                     Image(systemName: icon)
                         .font(.system(size: 15, weight: .regular))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
                 }
                 Text(suggestion.title)
                     .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .background(
-                Capsule().fill(Color(uiColor: .secondarySystemBackground))
+                Capsule().fill(fluentTheme.swiftUIColor(.background3))
             )
             .overlay(
-                Capsule().stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+                Capsule().stroke(fluentTheme.swiftUIColor(.strokeAlpha2), lineWidth: 0.5)
             )
         }
         .buttonStyle(.plain)
