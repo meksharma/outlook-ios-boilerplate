@@ -14,3 +14,14 @@ configuration:
     role: Maintain
   - member: junhwancho
     role: Maintain
+  - team: ol-designfte
+    role: Write
+  - team: ol-oxsuzhou
+    role: Write
+  - team: ol-designredfte
+    role: Write
+  - team: ol-designsvcfte
+    role: Write
+  - team: ol-oxslatam
+    role: Write
+
