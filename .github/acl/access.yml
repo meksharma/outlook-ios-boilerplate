@@ -24,3 +24,5 @@ configuration:
       role: Write
     - team: ol-oxslatam
       role: Write
+    - team: ol-oxsrow
+      role: Write
