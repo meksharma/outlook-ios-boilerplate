@@ -22,11 +22,11 @@
 //
 
 import FluentUI
+import OutlookBackdrop
 import SwiftUI
 
 struct ComposeView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
 
     @State private var toField: String = ""
     @State private var subjectField: String = ""
@@ -50,25 +50,25 @@ struct ComposeView: View {
 
                 ComposeToolbar()
             }
-            .background(fluentTheme.swiftUIColor(.background1))
+            .background(Color.odsNeutralBackground1)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { dismiss() }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
+                        Image(.dismiss24Regular)
+                            .renderingMode(.template)
+                            .foregroundStyle(Color.odsNeutralForeground1)
                     }
                 }
                 ToolbarItem(placement: .principal) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: .odsSpacingHorizontalS) {
                         Avatar(style: .default, size: .size24, primaryText: senderEmail)
                         VStack(alignment: .leading, spacing: 0) {
                             Text("New Message")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
+                                .font(.odsHeadlineStrong)
+                                .foregroundStyle(Color.odsNeutralForeground1)
                             Text(senderEmail)
-                                .font(.system(size: 12))
-                                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                                .font(.odsCaption2)
+                                .foregroundStyle(Color.odsNeutralForeground2)
                         }
                     }
                 }
@@ -77,9 +77,9 @@ struct ComposeView: View {
                         // Per Phase 1 spec: Send dismisses the sheet (no real send).
                         dismiss()
                     }) {
-                        Image(systemName: "paperplane.fill")
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundStyle(Color(uiColor: GlobalTokens.brandColor(.comm80)))
+                        Image(.send24Filled)
+                            .renderingMode(.template)
+                            .foregroundStyle(ODSPrimitive.brandCommBlue80)
                     }
                 }
             }
@@ -90,36 +90,36 @@ struct ComposeView: View {
     private var toRow: some View {
         HStack(alignment: .firstTextBaseline) {
             Text("To:")
-                .font(.system(size: 16))
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                .font(.odsHeadline)
+                .foregroundStyle(Color.odsNeutralForeground2)
             TextField("", text: $toField)
-                .font(.system(size: 16))
+                .font(.odsHeadline)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
             Spacer()
-            Image(systemName: "chevron.down")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+            Image(.chevronDown16Regular)
+                .renderingMode(.template)
+                .foregroundStyle(Color.odsNeutralForeground2)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, .odsSpacingHorizontalL)
         .padding(.vertical, 14)
     }
 
     private var subjectRow: some View {
         HStack(alignment: .firstTextBaseline) {
             Text("Subject:")
-                .font(.system(size: 16))
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                .font(.odsHeadline)
+                .foregroundStyle(Color.odsNeutralForeground2)
             TextField("", text: $subjectField)
-                .font(.system(size: 16))
+                .font(.odsHeadline)
             Spacer()
             /// Production renders `SecurityLabelPinsButton` (encryption / sensitivity label)
             /// here. Visual-only in Phase 1.
-            Image(systemName: "shield.fill")
-                .font(.system(size: 16))
-                .foregroundStyle(Color(uiColor: GlobalTokens.brandColor(.comm80)))
+            Image(.shield16Filled)
+                .renderingMode(.template)
+                .foregroundStyle(ODSPrimitive.brandCommBlue80)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, .odsSpacingHorizontalL)
         .padding(.vertical, 14)
     }
 
@@ -127,33 +127,33 @@ struct ComposeView: View {
         ZStack(alignment: .topLeading) {
             TextEditor(text: $bodyField)
                 .focused($bodyFocused)
-                .font(.system(size: 16))
+                .font(.odsHeadline)
                 .scrollContentBackground(.hidden)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 12)
+                .padding(.horizontal, .odsSize120)
+                .padding(.vertical, .odsSize120)
                 .frame(minHeight: 240)
 
             if bodyField.isEmpty && !bodyFocused {
                 bodyPlaceholder
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
+                    .padding(.horizontal, .odsSpacingHorizontalL)
+                    .padding(.vertical, .odsSize200)
                     .allowsHitTesting(false)
             }
         }
     }
 
     private var bodyPlaceholder: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: .odsSpacingVerticalSNudge) {
             Text("Start typing or")
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                .foregroundStyle(Color.odsNeutralForeground2)
             Image("CopilotIcon")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 16, height: 16)
             Text("Help me write")
-                .foregroundStyle(Color(uiColor: GlobalTokens.brandColor(.comm80)))
+                .foregroundStyle(ODSPrimitive.brandCommBlue80)
         }
-        .font(.system(size: 16))
+        .font(.odsHeadline)
     }
 }
 

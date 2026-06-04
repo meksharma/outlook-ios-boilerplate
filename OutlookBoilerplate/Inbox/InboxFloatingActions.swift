@@ -13,58 +13,48 @@
 //    - ComposeIcon.imageset (from client-cocoa Common.xcassets/Quick Actions/quick-action-compose.imageset)
 //    - CopilotIcon.imageset (from client-cocoa Common.xcassets/M365Copilot/ChatCopilotHighResolutionIcon.imageset)
 //
-//  DAB = Dynamic Action Bar (Outlook iOS subsystem name). The Compose / Copilot FABs are
-//  managed by DAB in production; for the boilerplate we render them statically.
+//  DAB = Dynamic Action Bar (Outlook iOS subsystem name).
+//  ComposeFAB renders above the bottom bar as an overlay; CopilotFAB lives
+//  inside `CustomBottomBar` alongside the tab pill.
 //
 
 import FluentUI
+import OutlookBackdrop
 import SwiftUI
 
-struct InboxFloatingActions: View {
-    let onComposeTap: () -> Void
-    let onCopilotTap: () -> Void
-
-    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+/// Standalone Compose FAB. Used as an overlay above the bottom bar.
+struct ComposeFAB: View {
+    let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            composeButton
-            copilotButton
-        }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 12)
-    }
-
-    private var composeButton: some View {
-        Button(action: onComposeTap) {
+        Button(action: action) {
             Image("ComposeIcon")
                 .renderingMode(.template)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 24, height: 24)
-                .foregroundStyle(Color(uiColor: GlobalTokens.brandColor(.comm80)))
-                .frame(width: 56, height: 56)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(fluentTheme.swiftUIColor(.background1))
-                        .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
-                )
+                .frame(width: 28, height: 28)
+                .foregroundStyle(ODSPrimitive.brandCommBlue80)
+                .frame(width: 62, height: 62)
+                .glassEffectCompat(interactive: true, tint: Color(light: .white, dark: .clear), in: Circle())
+                .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 4)
         }
         .buttonStyle(.plain)
     }
+}
 
-    private var copilotButton: some View {
-        Button(action: onCopilotTap) {
+/// Standalone Copilot FAB. Lives inside the bottom bar alongside the tab pill.
+struct CopilotFAB: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
             Image("CopilotIcon")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 32, height: 32)
-                .frame(width: 56, height: 56)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(fluentTheme.swiftUIColor(.background1))
-                        .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
-                )
+                .frame(width: 28, height: 28)
+                .frame(width: 62, height: 62)
+                .glassEffectCompat(interactive: true, tint: Color(light: .white, dark: .clear), in: Circle())
+                .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -77,8 +67,10 @@ struct InboxFloatingActions: View {
             Spacer()
             HStack {
                 Spacer()
-                InboxFloatingActions(onComposeTap: {}, onCopilotTap: {})
+                ComposeFAB(action: {})
+                CopilotFAB(action: {})
             }
+            .padding()
         }
     }
     .fluentTheme(FluentTheme.shared)

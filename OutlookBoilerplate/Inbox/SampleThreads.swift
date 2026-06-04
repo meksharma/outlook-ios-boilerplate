@@ -8,9 +8,20 @@
 //
 
 import Foundation
+import OutlookBackdrop
+
+enum InboxSection: String, CaseIterable, Hashable {
+    case today = "Today"
+    case yesterday = "Yesterday"
+    case thisWeek = "This Week"
+}
 
 struct InboxThread: Identifiable, Hashable {
     let id = UUID()
+
+    /// Which date-grouping section the thread sits in. Mirrors production's
+    /// `MessageListSectionHeaderInfo.title` derivation from message date.
+    let section: InboxSection
 
     /// Sender display name. Maps to `SnippetCellModel.from`.
     let sender: String
@@ -48,10 +59,16 @@ struct InboxThread: Identifiable, Hashable {
 
     /// Whether the user flagged the thread. Maps to `SnippetCellModel.flagged`.
     let isFlagged: Bool
+
+    /// Optional persona avatar. When set, the row renders the persona's photo;
+    /// when nil (e.g. organizational senders like "Microsoft Learn"), the row
+    /// falls back to a neutral initials avatar.
+    var persona: Persona? = nil
 }
 
 let sampleThreads: [InboxThread] = [
     InboxThread(
+        section: .today,
         sender: "Sarah Chen",
         recipients: "To you, +6",
         subject: "Q2 design review prep",
@@ -76,9 +93,11 @@ let sampleThreads: [InboxThread] = [
         isUnread: true,
         isExternalSender: false,
         hasAttachment: true,
-        isFlagged: false
+        isFlagged: false,
+        persona: .sarahPerez
     ),
     InboxThread(
+        section: .today,
         sender: "Marcus Rivera",
         recipients: "To you",
         subject: "Project Greenlight: kickoff materials",
@@ -101,9 +120,11 @@ let sampleThreads: [InboxThread] = [
         isUnread: true,
         isExternalSender: false,
         hasAttachment: true,
-        isFlagged: false
+        isFlagged: false,
+        persona: .mauricioAugust
     ),
     InboxThread(
+        section: .today,
         sender: "Microsoft Learn",
         recipients: "To you",
         subject: "Your weekly digest is ready",
@@ -128,6 +149,7 @@ let sampleThreads: [InboxThread] = [
         isFlagged: false
     ),
     InboxThread(
+        section: .yesterday,
         sender: "Jordan Patel",
         recipients: "To you, Sarah Chen",
         subject: "Re: design tokens proposal",
@@ -147,9 +169,11 @@ let sampleThreads: [InboxThread] = [
         isUnread: true,
         isExternalSender: false,
         hasAttachment: false,
-        isFlagged: false
+        isFlagged: false,
+        persona: .aadiKapoor
     ),
     InboxThread(
+        section: .yesterday,
         sender: "Emily Watson",
         recipients: "To you, +3",
         subject: "User research findings — round 2",
@@ -174,9 +198,11 @@ let sampleThreads: [InboxThread] = [
         isUnread: false,
         isExternalSender: false,
         hasAttachment: true,
-        isFlagged: true
+        isFlagged: true,
+        persona: .erikaFuller
     ),
     InboxThread(
+        section: .yesterday,
         sender: "Devon Brooks",
         recipients: "To you, the team",
         subject: "Sprint planning moves to Tuesday",
@@ -198,9 +224,11 @@ let sampleThreads: [InboxThread] = [
         isUnread: false,
         isExternalSender: false,
         hasAttachment: false,
-        isFlagged: false
+        isFlagged: false,
+        persona: .andreLawson
     ),
     InboxThread(
+        section: .thisWeek,
         sender: "PMCon 2026",
         recipients: "To you",
         subject: "Session recordings now live",
@@ -226,6 +254,7 @@ let sampleThreads: [InboxThread] = [
         isFlagged: false
     ),
     InboxThread(
+        section: .thisWeek,
         sender: "Microsoft IT",
         recipients: "To you",
         subject: "Action required: device security update",
@@ -254,6 +283,7 @@ let sampleThreads: [InboxThread] = [
         isFlagged: false
     ),
     InboxThread(
+        section: .thisWeek,
         sender: "Riley Foster",
         recipients: "To you",
         subject: "Re: prototype feedback",
@@ -276,9 +306,11 @@ let sampleThreads: [InboxThread] = [
         isUnread: false,
         isExternalSender: false,
         hasAttachment: false,
-        isFlagged: false
+        isFlagged: false,
+        persona: .robinCounts
     ),
     InboxThread(
+        section: .thisWeek,
         sender: "Olivia Martinez",
         recipients: "To you",
         subject: "Welcome to the team!",
@@ -301,6 +333,7 @@ let sampleThreads: [InboxThread] = [
         isUnread: false,
         isExternalSender: false,
         hasAttachment: false,
-        isFlagged: false
+        isFlagged: false,
+        persona: .monaKane
     ),
 ]
