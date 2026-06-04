@@ -17,12 +17,11 @@
 //
 
 import FluentUI
+import OutlookBackdrop
 import SwiftUI
 
 struct ReadingPaneView: View {
     let thread: InboxThread
-
-    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -37,13 +36,13 @@ struct ReadingPaneView: View {
 
             ReadingPaneActionBar()
         }
-        .background(fluentTheme.swiftUIColor(.background1))
+        .background(Color.odsNeutralBackground1)
         .navigationTitle(thread.subject)
         .navigationBarTitleDisplayMode(.inline)
     }
 
     private var senderBlock: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: .odsSize120) {
             Avatar(
                 style: .default,
                 size: .size40,
@@ -52,46 +51,46 @@ struct ReadingPaneView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(thread.sender)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
+                    .font(.odsHeadlineStrong)
+                    .foregroundStyle(Color.odsNeutralForeground1)
 
                 Text(thread.recipients)
-                    .font(.system(size: 14))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                    .font(.odsBody2)
+                    .foregroundStyle(Color.odsNeutralForeground2)
             }
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: .odsSize40) {
                 Text(thread.timeStamp)
-                    .font(.system(size: 13))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                    .font(.odsCaption1)
+                    .foregroundStyle(Color.odsNeutralForeground2)
 
-                HStack(spacing: 12) {
+                HStack(spacing: .odsSize120) {
                     /// Shield icon: production uses a security label / encryption-state icon
                     /// here. Visual-only in Phase 1.
-                    Image(systemName: "shield.fill")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color(uiColor: GlobalTokens.brandColor(.comm80)))
+                    Image(.shield16Filled)
+                        .renderingMode(.template)
+                        .foregroundStyle(ODSPrimitive.brandCommBlue80)
 
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                    Image(.moreHorizontal16Regular)
+                        .renderingMode(.template)
+                        .foregroundStyle(Color.odsNeutralForeground2)
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .padding(.horizontal, .odsSpacingHorizontalL)
+        .padding(.vertical, .odsSpacingHorizontalL)
     }
 
     private var bodyContent: some View {
         Text(thread.body)
-            .font(.system(size: 16))
-            .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
+            .font(.odsHeadline)
+            .foregroundStyle(Color.odsNeutralForeground1)
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
+            .padding(.horizontal, .odsSpacingHorizontalL)
+            .padding(.vertical, .odsSpacingHorizontalL)
     }
 }
 

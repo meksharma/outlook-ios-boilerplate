@@ -242,60 +242,45 @@ struct InboxHeader: View {
         .fluentTheme(FluentTheme.shared)
 }
 
-// MARK: - Native Action Sheet bridge
-
-/// Presents a UIKit `UIAlertController(preferredStyle: .actionSheet)` from
-/// SwiftUI. iOS 26 changed `.confirmationDialog` to render as a popover
-/// anchored to the trigger on iPhone (Menu-style) instead of the bottom
-/// action sheet our Figma calls for, so we bridge to UIKit directly.
-///
-/// Presents from the topmost view controller in the active window scene
-/// (not from the representable's own host VC, which isn't in any visible
-/// VC hierarchy — `present()` would silently fail).
-struct NativeActionSheetPresenter: UIViewControllerRepresentable {
-    struct Action {
-        let title: String
-        let style: UIAlertAction.Style
-        let handler: () -> Void
-    }
-
-    @Binding var isPresented: Bool
-    let title: String
-    let actions: [Action]
-
-    func makeUIViewController(context: Context) -> UIViewController {
-        UIViewController()
-    }
-
-    func updateUIViewController(_ host: UIViewController, context: Context) {
+extension InboxHeader {
+    /// Imperatively presents the Designer Tools action sheet via UIKit.
+    /// iOS 26 changed SwiftUI's `.confirmationDialog` to render as a popover
+    /// anchored to the trigger on iPhone (Menu-style), not the bottom action
+    /// sheet our Figma calls for. Imperative UIKit presentation gives us the
+    /// native action-sheet rendering matching Figma `7701:5907`.
+    @MainActor
+    fileprivate func presentDesignerTools() {
         guard let topVC = Self.topPresentedViewController() else { return }
 
-        if isPresented, !(topVC is UIAlertController) {
-            let alert = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
-            for action in actions {
-                alert.addAction(UIAlertAction(title: action.title, style: action.style) { _ in
-                    action.handler()
-                    isPresented = false
-                })
-            }
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
-                isPresented = false
-            })
-            // iPad / regular size class needs a source view for popover
-            // adaptation; iPhone ignores this and renders as a bottom sheet.
-            alert.popoverPresentationController?.sourceView = topVC.view
-            alert.popoverPresentationController?.sourceRect = CGRect(
-                x: topVC.view.bounds.midX,
-                y: topVC.view.bounds.midY,
-                width: 0, height: 0
-            )
-            topVC.present(alert, animated: true)
-        } else if !isPresented, let alert = topVC as? UIAlertController {
-            alert.dismiss(animated: true)
-        }
+        let alert = UIAlertController(title: "Designer Tools", message: nil, preferredStyle: .actionSheet)
+
+        let currentScheme = UserDefaults.standard.string(forKey: "appColorScheme") ?? "light"
+
+        let lightTitle = currentScheme == "light" ? "✓  Light Mode" : "Light Mode"
+        alert.addAction(UIAlertAction(title: lightTitle, style: .default) { _ in
+            UserDefaults.standard.set("light", forKey: "appColorScheme")
+        })
+
+        let darkTitle = currentScheme == "dark" ? "✓  Dark Mode" : "Dark Mode"
+        alert.addAction(UIAlertAction(title: darkTitle, style: .default) { _ in
+            UserDefaults.standard.set("dark", forKey: "appColorScheme")
+        })
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        // iPad / regular size class needs a popover anchor; iPhone ignores
+        // these and renders as a bottom sheet.
+        alert.popoverPresentationController?.sourceView = topVC.view
+        alert.popoverPresentationController?.sourceRect = CGRect(
+            x: topVC.view.bounds.midX, y: topVC.view.bounds.midY, width: 0, height: 0
+        )
+
+        topVC.present(alert, animated: true)
     }
 
     /// Walks the active window scene to find the topmost presented VC.
+    /// Required because SwiftUI views don't own a VC we can present from —
+    /// we have to find the visible one at the moment of the tap.
     @MainActor
     private static func topPresentedViewController() -> UIViewController? {
         guard let scene = UIApplication.shared.connectedScenes

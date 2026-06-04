@@ -28,12 +28,11 @@
 //
 
 import FluentUI
+import OutlookBackdrop
 import SwiftUI
 
 struct CopilotSheetOverlay: View {
     @Binding var isShowing: Bool
-
-    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
 
     @State private var promptText: String = ""
 
@@ -65,18 +64,18 @@ struct CopilotSheetOverlay: View {
     private var sheetCard: some View {
         VStack(spacing: 0) {
             dragIndicator
-            VStack(spacing: 12) {
+            VStack(spacing: .odsSize120) {
                 suggestionChipsRow
                 inputBar
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
+            .padding(.horizontal, .odsSpacingHorizontalL)
+            .padding(.bottom, .odsSize120)
         }
         .frame(height: sheetHeight, alignment: .top)
         .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(fluentTheme.swiftUIColor(.background1))
+            Color.clear
+                .glassEffectCompat(in: RoundedRectangle(cornerRadius: cornerRadius))
                 .ignoresSafeArea(edges: .bottom)
         )
         .offset(y: isShowing ? 0 : sheetHeight + 200)
@@ -85,15 +84,15 @@ struct CopilotSheetOverlay: View {
 
     private var dragIndicator: some View {
         Capsule()
-            .fill(fluentTheme.swiftUIColor(.foreground2).opacity(0.4))
+            .fill(Color.odsNeutralForeground2.opacity(0.4))
             .frame(width: 36, height: 5)
-            .padding(.top, 8)
-            .padding(.bottom, 4)
+            .padding(.top, .odsSpacingVerticalS)
+            .padding(.bottom, .odsSize40)
     }
 
     private var suggestionChipsRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: .odsSpacingHorizontalS) {
                 ForEach(suggestions) { suggestion in
                     SuggestionChip(suggestion: suggestion)
                 }
@@ -102,12 +101,12 @@ struct CopilotSheetOverlay: View {
     }
 
     private var inputBar: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 8) {
+        HStack(spacing: .odsSize120) {
+            HStack(spacing: .odsSpacingHorizontalS) {
                 Button(action: {}) {
                     Image(systemName: "plus")
                         .font(.system(size: 18, weight: .regular))
-                        .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                        .foregroundStyle(Color.odsNeutralForeground2)
                 }
                 .buttonStyle(.plain)
 
@@ -116,12 +115,12 @@ struct CopilotSheetOverlay: View {
                     placeholder: "Ask Copilot",
                     shouldFocus: $isShowing
                 )
-                .frame(height: 24)
+                .frame(height: .odsSize240)
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 12)
+            .padding(.vertical, .odsSize120)
             .background(
-                Capsule().fill(fluentTheme.swiftUIColor(.background3))
+                Capsule().fill(Color.odsNeutralBackground3)
             )
 
             voiceButton
@@ -135,7 +134,7 @@ struct CopilotSheetOverlay: View {
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
                 .background(
-                    Circle().fill(Color(uiColor: GlobalTokens.brandColor(.comm80)))
+                    Circle().fill(ODSPrimitive.brandCommBlue80)
                 )
         }
         .buttonStyle(.plain)
@@ -151,30 +150,28 @@ private struct Suggestion: Identifiable, Hashable {
 private struct SuggestionChip: View {
     let suggestion: Suggestion
 
-    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
-
     var body: some View {
         Button(action: {}) {
-            HStack(spacing: 8) {
+            HStack(spacing: .odsSpacingHorizontalS) {
                 if let icon = suggestion.iconSystemName {
                     Image(systemName: icon)
-                        .font(.system(size: 15, weight: .regular))
-                        .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
+                        .font(.odsBody2)
+                        .foregroundStyle(Color.odsNeutralForeground1)
                 }
                 Text(suggestion.title)
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground1))
+                    .font(.odsBody2)
+                    .foregroundStyle(Color.odsNeutralForeground1)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, .odsSpacingHorizontalL)
+            .padding(.vertical, .odsSpacingVerticalMNudge)
             .background(
-                Capsule().fill(fluentTheme.swiftUIColor(.background3))
+                Capsule().fill(Color.odsNeutralBackground3)
             )
             .overlay(
                 /// `.strokeAlpha2` (10% inverting black/white) lands in a later FluentUI Apple
                 /// release; 0.35.0 has no equivalent. `.foreground1` at 0.08 reproduces the
                 /// original SwiftUI `Color.primary.opacity(0.08)` look while staying tokenized.
-                Capsule().stroke(fluentTheme.swiftUIColor(.foreground1).opacity(0.08), lineWidth: 0.5)
+                Capsule().stroke(Color.odsNeutralForeground1.opacity(0.08), lineWidth: 0.5)
             )
         }
         .buttonStyle(.plain)

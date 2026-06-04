@@ -10,75 +10,65 @@
 //      lines 30-48 (icon names: arrowReplyAll24Regular, delete24Regular,
 //      textBulletListSquareSparkle24Regular, moreHorizontal24Regular)
 //
-//  Known gap (documented):
-//    - Production icons come from FluentIcons (private Microsoft Pod). FluentUI Apple's
-//      bundled icon set doesn't include Reply All, Trash, etc. SF Symbols are used as
-//      visually-similar approximations. Same approach as the Inbox header chrome.
+//  Pending: brand-mark FluentBrandIcons gap only (auth-gated) — vendored
+//  `CopilotIcon` stays as the stand-in for the Copilot ribbon.
 //
 
 import FluentUI
+import OutlookBackdrop
 import SwiftUI
 
 /// Visual-only bottom action bar for the reading pane. Per Phase 1 PRD, only the back
 /// button (provided by the parent NavigationStack) is functional; every action button
 /// here is a no-op.
 struct ReadingPaneActionBar: View {
-    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
-
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: .odsSize120) {
             actionCapsule
             copilotFAB
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
+        .padding(.horizontal, .odsSpacingHorizontalL)
+        .padding(.bottom, .odsSpacingVerticalS)
     }
 
     private var actionCapsule: some View {
         HStack(spacing: 0) {
-            replyAllPill
-            actionIcon(systemName: "envelope", showsBadge: true)
-            actionIcon(systemName: "trash")
+            replyPill
+            actionIcon(.mail24Regular, showsBadge: true)
+            actionIcon(.delete24Regular)
             copilotSummaryIcon
-            actionIcon(systemName: "ellipsis")
+            actionIcon(.moreHorizontal24Regular)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(fluentTheme.swiftUIColor(.background1))
-                .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
-        )
+        .padding(.horizontal, .odsSpacingHorizontalS)
+        .padding(.vertical, .odsSpacingVerticalSNudge)
+        .glassEffectCompat()
+        .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
     }
 
-    /// Outlook brand blue. Production DAB action icons render in this color (Outlook's
-    /// actionable-icon convention), not in `.primary` / system foreground.
-    private var actionTint: Color {
-        Color(uiColor: GlobalTokens.brandColor(.comm80))
-    }
-
-    private var replyAllPill: some View {
+    /// Default action is "Reply" (single arrow) to match production WIP. Chevron
+    /// hint indicates the user can swap to Reply All / Reply via dropdown.
+    private var replyPill: some View {
         Button(action: {}) {
-            HStack(spacing: 4) {
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .semibold))
-                Image(systemName: "arrowshape.turn.up.left.2")
-                    .font(.system(size: 17, weight: .regular))
-                Text("Reply All")
-                    .font(.system(size: 15, weight: .regular))
+            HStack(spacing: .odsSpacingHorizontalXS) {
+                Image(.chevronDown16Regular)
+                    .renderingMode(.template)
+                Image(.arrowReply24Regular)
+                    .renderingMode(.template)
+                Text("Reply")
+                    .font(.odsBody2)
             }
-            .foregroundStyle(actionTint)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .foregroundStyle(ODSPrimitive.brandCommBlue80)
+            .padding(.horizontal, .odsSize120)
+            .padding(.vertical, .odsSpacingVerticalS)
         }
         .buttonStyle(.plain)
     }
 
-    private func actionIcon(systemName: String, showsBadge: Bool = false) -> some View {
+    private func actionIcon(_ icon: OutlookIcon, showsBadge: Bool = false) -> some View {
         Button(action: {}) {
-            Image(systemName: systemName)
-                .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(actionTint)
+            Image(icon)
+                .renderingMode(.template)
+                .foregroundStyle(ODSPrimitive.brandCommBlue80)
                 .frame(width: 36, height: 36)
                 .overlay(alignment: .topTrailing) {
                     if showsBadge {
@@ -108,7 +98,7 @@ struct ReadingPaneActionBar: View {
                 Text("New")
                     .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, .odsSpacingHorizontalXS)
                     .padding(.vertical, 1)
                     .background(Capsule().fill(Color.red))
                     .offset(x: 0, y: -4)
@@ -124,13 +114,10 @@ struct ReadingPaneActionBar: View {
             Image("CopilotIcon")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 32, height: 32)
+                .frame(width: .odsSize320, height: .odsSize320)
                 .frame(width: 56, height: 56)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(fluentTheme.swiftUIColor(.background1))
-                        .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
-                )
+                .glassEffectCompat(in: RoundedRectangle(cornerRadius: 14))
+                .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(.plain)
     }

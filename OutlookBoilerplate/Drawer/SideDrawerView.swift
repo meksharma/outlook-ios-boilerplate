@@ -23,18 +23,15 @@
 //  replicate with a SwiftUI ZStack overlay (scrim + slide-from-leading drawer card +
 //  drag-to-dismiss gesture). Tap-outside scrim dismisses.
 //
-//  Known gap (documented):
-//    - Folder icons use SF Symbols because production icons come from FluentIcons (private
-//      Microsoft Pod we don't pull). Same approach as Inbox / Reading-pane / Compose chrome.
+//  Pending: brand-mark FluentBrandIcons gap only (auth-gated).
 //
 
 import FluentUI
+import OutlookBackdrop
 import SwiftUI
 
 struct SideDrawerView: View {
     @Binding var isShowing: Bool
-
-    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
 
     private let drawerWidth: CGFloat = 320
 
@@ -76,7 +73,7 @@ struct SideDrawerView: View {
             bottomChrome
         }
         .frame(width: drawerWidth)
-        .background(fluentTheme.swiftUIColor(.background1))
+        .glassEffectCompat(in: Rectangle())
         .offset(x: isShowing ? 0 : -drawerWidth)
         .allowsHitTesting(isShowing)
     }
@@ -84,22 +81,22 @@ struct SideDrawerView: View {
     // MARK: - Account header
 
     private var accountHeader: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: .odsSize120) {
             Avatar(style: .default, size: .size40, primaryText: "Jay Cho")
             VStack(alignment: .leading, spacing: 0) {
                 Text("Microsoft 365")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.odsBody1Strong)
                 Text("junhwancho@microsoft.com")
-                    .font(.system(size: 13))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                    .font(.odsCaption1)
+                    .foregroundStyle(Color.odsNeutralForeground2)
             }
             Spacer()
-            Image(systemName: "alarm")
-                .font(.system(size: 17))
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+            Image(.alert24Regular)
+                .renderingMode(.template)
+                .foregroundStyle(Color.odsNeutralForeground2)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .padding(.horizontal, .odsSpacingHorizontalL)
+        .padding(.vertical, .odsSpacingHorizontalL)
         .padding(.top, 60) // safe area inset for status bar
     }
 
@@ -108,9 +105,9 @@ struct SideDrawerView: View {
     private var favoritesSection: some View {
         VStack(spacing: 0) {
             sectionHeader(title: "Favorites", showsEditPencil: true)
-            folderRow(icon: "paperplane", name: "Sent")
-            folderRow(icon: "pencil.and.list.clipboard", name: "Drafts", count: 3)
-            folderRow(icon: "tray", name: "Inbox", count: 702, isSelected: true)
+            folderRow(icon: .send24Regular, name: "Sent")
+            folderRow(icon: .drafts24Regular, name: "Drafts", count: 3)
+            folderRow(icon: .mailInbox24Regular, name: "Inbox", count: 702, isSelected: true)
         }
     }
 
@@ -118,14 +115,14 @@ struct SideDrawerView: View {
 
     private var foldersSection: some View {
         VStack(spacing: 0) {
-            folderRow(icon: "tray", name: "Inbox", count: 702, isSelected: true, hasChevron: true)
-            folderRow(icon: "archivebox", name: "Archive", count: 57)
-            folderRow(icon: "pencil.and.list.clipboard", name: "Drafts", count: 3)
-            folderRow(icon: "paperplane", name: "Sent")
-            folderRow(icon: "trash", name: "Deleted", count: 154, hasChevron: true)
-            folderRow(icon: "folder", name: "Conversation History")
-            folderRow(icon: "trash.slash", name: "Junk", count: 6)
-            folderRow(icon: "person.2", name: "Groups", count: 999)
+            folderRow(icon: .mailInbox24Regular, name: "Inbox", count: 702, isSelected: true, hasChevron: true)
+            folderRow(icon: .archive24Regular, name: "Archive", count: 57)
+            folderRow(icon: .drafts24Regular, name: "Drafts", count: 3)
+            folderRow(icon: .send24Regular, name: "Sent")
+            folderRow(icon: .delete24Regular, name: "Deleted", count: 154, hasChevron: true)
+            folderRow(icon: .folder24Regular, name: "Conversation History")
+            folderRow(icon: .folderProhibited24Regular, name: "Junk", count: 6)
+            folderRow(icon: .people24Regular, name: "Groups", count: 999)
         }
         .padding(.bottom, 24)
     }
@@ -133,19 +130,19 @@ struct SideDrawerView: View {
     // MARK: - Bottom chrome (settings + help)
 
     private var bottomChrome: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: .odsSpacingHorizontalL) {
             Divider()
-            HStack(spacing: 24) {
-                Image(systemName: "questionmark.circle")
-                    .font(.system(size: 22))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
-                Image(systemName: "gearshape")
-                    .font(.system(size: 22))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+            HStack(spacing: .odsSize240) {
+                Image(.questionCircle24Regular)
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.odsNeutralForeground2)
+                Image(.settings24Regular)
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.odsNeutralForeground2)
                 Spacer()
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 32)
+            .padding(.horizontal, .odsSpacingHorizontalL)
+            .padding(.bottom, .odsSize320)
         }
     }
 
@@ -154,64 +151,60 @@ struct SideDrawerView: View {
     private func sectionHeader(title: String, showsEditPencil: Bool) -> some View {
         HStack {
             Text(title)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                .font(.odsBody2Strong)
+                .foregroundStyle(Color.odsNeutralForeground2)
             Spacer()
             if showsEditPencil {
-                Image(systemName: "square.and.pencil")
-                    .font(.system(size: 15))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                Image(.edit24Regular)
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.odsNeutralForeground2)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 16)
-        .padding(.bottom, 8)
+        .padding(.horizontal, .odsSpacingHorizontalL)
+        .padding(.top, .odsSpacingHorizontalL)
+        .padding(.bottom, .odsSpacingVerticalS)
     }
 
     private func folderRow(
-        icon: String,
+        icon: OutlookIcon,
         name: String,
         count: Int? = nil,
         isSelected: Bool = false,
         hasChevron: Bool = false
     ) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 18, weight: .regular))
-                .foregroundStyle(isSelected ? brand : fluentTheme.swiftUIColor(.foreground1))
+        HStack(spacing: .odsSize120) {
+            Image(icon)
+                .renderingMode(.template)
+                .foregroundStyle(isSelected ? ODSPrimitive.brandCommBlue80 : Color.odsNeutralForeground1)
                 .frame(width: 25, height: 25)
 
             Text(name)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(isSelected ? brand : fluentTheme.swiftUIColor(.foreground1))
+                .font(.odsBody2Strong)
+                .foregroundStyle(isSelected ? ODSPrimitive.brandCommBlue80 : Color.odsNeutralForeground1)
 
             Spacer()
 
             if let count {
                 Text(formatCount(count))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
-                    .padding(.horizontal, 8)
+                    .font(.odsCaption1Strong)
+                    .foregroundStyle(Color.odsNeutralForeground2)
+                    .padding(.horizontal, .odsSpacingHorizontalS)
                     .padding(.vertical, 2)
                     .background(
-                        Capsule().fill(fluentTheme.swiftUIColor(.background3))
+                        Capsule().fill(Color.odsNeutralBackground3)
                     )
             }
 
             if hasChevron {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+                Image(.chevronRight16Regular)
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.odsNeutralForeground2)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, .odsSpacingHorizontalL)
+        .padding(.vertical, .odsSize120)
         .contentShape(Rectangle())
         .onTapGesture { /* visual-only in Phase 1 */ }
-    }
-
-    private var brand: Color {
-        Color(uiColor: GlobalTokens.brandColor(.comm80))
     }
 
     private func formatCount(_ count: Int) -> String {
