@@ -55,7 +55,12 @@ public enum OutlookIcon: String, CaseIterable, Sendable {
     case attach24Regular           = "ic_fluent_attach_24_regular"
     case camera24Regular           = "ic_fluent_camera_24_regular"
     case textFont24Regular         = "ic_fluent_text_font_24_regular"
+    case textEditStyle24Regular    = "ic_fluent_text_edit_style_24_regular"
     case calendarClock24Regular    = "ic_fluent_calendar_clock_24_regular"
+    case calendarEmpty24Regular    = "ic_fluent_calendar_empty_24_regular"
+    case penSparkle24Regular       = "ic_fluent_pen_sparkle_24_regular"
+    case chatSparkle24Regular      = "ic_fluent_chat_sparkle_24_regular"
+    case textBulletListSquareSparkle24Regular = "ic_fluent_text_bullet_list_square_sparkle_24_regular"
 
     // Side drawer — folders, account chrome
     case mailInbox24Regular        = "ic_fluent_mail_inbox_24_regular"
