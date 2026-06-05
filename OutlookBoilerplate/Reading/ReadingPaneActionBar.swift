@@ -23,17 +23,15 @@ import SwiftUI
 /// here is a no-op.
 struct ReadingPaneActionBar: View {
     var body: some View {
-        HStack(spacing: .odsSize120) {
-            actionCapsule
-            copilotFAB
-        }
-        .padding(.horizontal, .odsSpacingHorizontalL)
-        .padding(.bottom, .odsSpacingVerticalS)
+        actionCapsule
+            .padding(.horizontal, .odsSpacingHorizontalL)
+            .padding(.bottom, .odsSize120)
     }
 
     private var actionCapsule: some View {
         HStack(spacing: 0) {
             replyPill
+            Spacer(minLength: 0)
             actionIcon(.mail24Regular, showsBadge: true)
             actionIcon(.delete24Regular)
             copilotSummaryIcon
@@ -41,7 +39,8 @@ struct ReadingPaneActionBar: View {
         }
         .padding(.horizontal, .odsSpacingHorizontalS)
         .padding(.vertical, .odsSpacingVerticalSNudge)
-        .glassEffectCompat()
+        .frame(maxWidth: .infinity)
+        .liquidGlassEffect()
         .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
     }
 
@@ -57,7 +56,7 @@ struct ReadingPaneActionBar: View {
                 Text("Reply")
                     .font(.odsBody2)
             }
-            .foregroundStyle(ODSPrimitive.brandCommBlue80)
+            .foregroundStyle(Color.odsNeutralForeground1)
             .padding(.horizontal, .odsSize120)
             .padding(.vertical, .odsSpacingVerticalS)
         }
@@ -68,7 +67,7 @@ struct ReadingPaneActionBar: View {
         Button(action: {}) {
             Image(icon)
                 .renderingMode(.template)
-                .foregroundStyle(ODSPrimitive.brandCommBlue80)
+                .foregroundStyle(Color.odsNeutralForeground1)
                 .frame(width: 36, height: 36)
                 .overlay(alignment: .topTrailing) {
                     if showsBadge {
@@ -82,45 +81,19 @@ struct ReadingPaneActionBar: View {
         .buttonStyle(.plain)
     }
 
-    /// "Copilot summary" action — production maps to `textBulletListSquareSparkle24Regular`
-    /// from FluentIcons. Boilerplate uses our vendored Copilot SVG at small size with a "New"
-    /// badge to match the production visual.
+    /// "Summarize" action — production source:
+    /// `client-cocoa/.../ConversationActionsData.swift` lines 30-48
+    /// → `textBulletListSquareSparkle24Regular`.
     private var copilotSummaryIcon: some View {
         Button(action: {}) {
-            ZStack {
-                Image("CopilotIcon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 22, height: 22)
-            }
-            .frame(width: 36, height: 36)
-            .overlay(alignment: .topTrailing) {
-                Text("New")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, .odsSpacingHorizontalXS)
-                    .padding(.vertical, 1)
-                    .background(Capsule().fill(Color.red))
-                    .offset(x: 0, y: -4)
-            }
+            Image(.textBulletListSquareSparkle24Regular)
+                .renderingMode(.template)
+                .foregroundStyle(Color.odsNeutralForeground1)
+                .frame(width: 36, height: 36)
         }
         .buttonStyle(.plain)
     }
 
-    /// Floating Copilot FAB — same vendored asset as `InboxFloatingActions.swift`.
-    /// In production this is the larger Copilot button outside the action capsule.
-    private var copilotFAB: some View {
-        Button(action: {}) {
-            Image("CopilotIcon")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: .odsSize320, height: .odsSize320)
-                .frame(width: 56, height: 56)
-                .glassEffectCompat(in: RoundedRectangle(cornerRadius: 14))
-                .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
-        }
-        .buttonStyle(.plain)
-    }
 }
 
 #Preview {

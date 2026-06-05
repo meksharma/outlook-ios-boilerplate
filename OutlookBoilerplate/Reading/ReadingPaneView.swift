@@ -24,21 +24,22 @@ struct ReadingPaneView: View {
     let thread: InboxThread
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    senderBlock
-                    Divider()
-                    bodyContent
-                    Spacer(minLength: 96)
-                }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                senderBlock
+                Divider()
+                bodyContent
             }
-
-            ReadingPaneActionBar()
         }
         .background(Color.odsNeutralBackground1)
         .navigationTitle(thread.subject)
         .navigationBarTitleDisplayMode(.inline)
+        // ReadingPaneActionBar is rendered at the ContentView level (stacked
+        // above BottomNav inside the outer `safeAreaInset`) so it sits
+        // visibly above the tab pill rather than being clipped beneath it
+        // by the `.ignoresSafeArea(.container, edges: .bottom)` on
+        // `currentTabContent`. Visibility is driven by the
+        // `readingPanePresented` binding bubbled up from InboxView.
     }
 
     private var senderBlock: some View {

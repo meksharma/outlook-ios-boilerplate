@@ -32,6 +32,10 @@ struct ContentView: View {
     @State private var showingCopilotSheet = false
     @State private var showingComposeSheet = false
     @State private var selectedTab: Tab = .mail
+    /// True while a ReadingPaneView is pushed onto the InboxView navigation
+    /// stack. Hides the Compose FAB so the reading-pane DAB owns the bottom
+    /// chrome (matches dev build).
+    @State private var readingPanePresented = false
     @AppStorage("appColorScheme") private var appColorScheme: String = "light"
 
     enum Tab: Int, Hashable { case mail = 0, calendar, apps }
@@ -40,12 +44,24 @@ struct ContentView: View {
         ZStack {
             currentTabContent
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    BottomNav(
-                        selectedTab: $selectedTab,
-                        showCompose: selectedTab == .mail,
-                        onComposeTap: { showingComposeSheet = true },
-                        onCopilotTap: { showingCopilotSheet = true }
-                    )
+                    VStack(spacing: 0) {
+                        // Reading-pane DAB stacks above BottomNav, both in
+                        // the same safe area inset. Drives the matched
+                        // dev-build layering: DAB above tab pill.
+                        if readingPanePresented {
+                            ReadingPaneActionBar()
+                        }
+                        BottomNav(
+                            selectedTab: $selectedTab,
+                            showCompose: selectedTab == .mail && !readingPanePresented,
+                            onComposeTap: { showingComposeSheet = true },
+                            onCopilotTap: { showingCopilotSheet = true }
+                        )
+                        // Reading-pane DAB owns the 12pt gap above. When no
+                        // DAB is shown, the BottomNav needs its own 16pt
+                        // breathing room from the content above.
+                        .padding(.top, readingPanePresented ? 0 : 16)
+                    }
                 }
                 // Apply to the safeAreaInset chain so the BottomNav can
                 // extend past the home-indicator safe area. Applying this
@@ -73,7 +89,8 @@ struct ContentView: View {
             InboxView(
                 showingSideDrawer: $showingSideDrawer,
                 showingCopilotSheet: $showingCopilotSheet,
-                showingComposeSheet: $showingComposeSheet
+                showingComposeSheet: $showingComposeSheet,
+                readingPanePresented: $readingPanePresented
             )
         case .calendar:
             CalendarPlaceholder()
@@ -99,18 +116,21 @@ struct BottomNav: View {
                 CopilotPillFAB(action: onCopilotTap)
             }
             .padding(.horizontal, 16)
-            .padding(.top, 16)
+            // Top padding is applied from ContentView level so the reading-pane
+            // DAB (when shown) can control the gap between itself and this bar.
             .padding(.bottom, 32)
             .shadow(color: .black.opacity(0.06), radius: 40, x: 0, y: 4)
             .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 4)
 
             // Compose floats above the right side of the pill (Mail tab only).
-            // `.offset(y: -52)` ports Figma's `top: -52` absolute position so
-            // Compose's bottom edge sits 10pt above the tab-pill's top edge.
+            // Offset math: ZStack top sits at the HStack's visible top edge
+            // (no internal top padding anymore). Compose is 58pt tall; we want
+            // its bottom edge 10pt above the tab-pill's top edge, so offset =
+            // -(10 + 58) = -68.
             if showCompose {
                 ComposePillFAB(action: onComposeTap)
                     .padding(.trailing, 16)
-                    .offset(y: -52)
+                    .offset(y: -68)
             }
         }
     }
