@@ -60,6 +60,13 @@ struct InboxHeader: View {
     /// apply `.preferredColorScheme(_:)` at the app root.
     @AppStorage("appColorScheme") private var appColorScheme: String = "light"
 
+    /// Drives the Designer Tools bottom sheet. Re-introduced after we moved
+    /// off the imperative `UIAlertController(.actionSheet)` path — iOS 26
+    /// system action sheets render as a centered popover, not the multi-row
+    /// glass-pill panel we want (see `DesignerToolsSheet` for the Figma-style
+    /// implementation matching iOS Focus-modes visual language).
+    @State private var showingBeakerSheet: Bool = false
+
     enum FocusedTab: Hashable { case focused, other }
 
     // MARK: - Collapse math
@@ -108,10 +115,18 @@ struct InboxHeader: View {
             Spacer()
 
             HStack(spacing: .odsSize200) {
-                Button(action: presentDesignerTools) {
+                Button(action: { showingBeakerSheet = true }) {
                     chromeIcon(.beakerSettings20Regular)
                 }
                 .buttonStyle(.plain)
+                .sheet(isPresented: $showingBeakerSheet) {
+                    DesignerToolsSheet(appColorScheme: $appColorScheme)
+                        .presentationDetents([.medium, .large])
+                        .presentationDragIndicator(.visible)
+                        // Default sheet background — letting the system
+                        // render its native glass material so the pill's
+                        // glass effect has non-uniform content to refract.
+                }
 
                 chromeIcon(.alert24Regular, showsBadge: true)
                 chromeIcon(.search24Regular)
@@ -242,57 +257,95 @@ struct InboxHeader: View {
         .fluentTheme(FluentTheme.shared)
 }
 
-extension InboxHeader {
-    /// Imperatively presents the Designer Tools action sheet via UIKit.
-    /// iOS 26 changed SwiftUI's `.confirmationDialog` to render as a popover
-    /// anchored to the trigger on iPhone (Menu-style), not the bottom action
-    /// sheet our Figma calls for. Imperative UIKit presentation gives us the
-    /// native action-sheet rendering matching Figma `7701:5907`.
-    @MainActor
-    fileprivate func presentDesignerTools() {
-        guard let topVC = Self.topPresentedViewController() else { return }
+// MARK: - Designer Tools Sheet
 
-        let alert = UIAlertController(title: "Designer Tools", message: nil, preferredStyle: .actionSheet)
+/// Bottom sheet panel of designer-debug controls. Visual language follows
+/// iOS Focus-modes selector (Image #22 reference): full-width glass
+/// capsules, leading icon + title + description, subtle blue tint on the
+/// active row. Replaces what was an action sheet — iOS 26 system action
+/// sheets are centered popovers, not the multi-row panel we need.
+struct DesignerToolsSheet: View {
+    @Binding var appColorScheme: String
 
-        let currentScheme = UserDefaults.standard.string(forKey: "appColorScheme") ?? "light"
+    private var isDarkMode: Bool { appColorScheme == "dark" }
 
-        let lightTitle = currentScheme == "light" ? "✓  Light Mode" : "Light Mode"
-        alert.addAction(UIAlertAction(title: lightTitle, style: .default) { _ in
-            UserDefaults.standard.set("light", forKey: "appColorScheme")
-        })
+    var body: some View {
+        ScrollView {
+            // `GlassEffectContainer` is iOS 26's intended host for views
+            // using `.glassEffect`. It coordinates the glass rendering pass,
+            // morphing/blending neighboring glass shapes and giving each
+            // one the backdrop sample it needs to actually refract.
+            GlassEffectContainerCompat {
+                VStack(spacing: 12) {
+                    ControlPill(
+                        icon: isDarkMode ? "moon.fill" : "sun.max.fill",
+                        title: "Dark Mode",
+                        description: isDarkMode ? "On" : "Off",
+                        isActive: isDarkMode
+                    ) {
+                        appColorScheme = isDarkMode ? "light" : "dark"
+                    }
 
-        let darkTitle = currentScheme == "dark" ? "✓  Dark Mode" : "Dark Mode"
-        alert.addAction(UIAlertAction(title: darkTitle, style: .default) { _ in
-            UserDefaults.standard.set("dark", forKey: "appColorScheme")
-        })
-
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
-        // iPad / regular size class needs a popover anchor; iPhone ignores
-        // these and renders as a bottom sheet.
-        alert.popoverPresentationController?.sourceView = topVC.view
-        alert.popoverPresentationController?.sourceRect = CGRect(
-            x: topVC.view.bounds.midX, y: topVC.view.bounds.midY, width: 0, height: 0
-        )
-
-        topVC.present(alert, animated: true)
+                    // More tools land here as we add them — randomize content,
+                    // simulated states, theme variants, etc.
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 24)
+        }
     }
+}
 
-    /// Walks the active window scene to find the topmost presented VC.
-    /// Required because SwiftUI views don't own a VC we can present from —
-    /// we have to find the visible one at the moment of the tap.
-    @MainActor
-    private static func topPresentedViewController() -> UIViewController? {
-        guard let scene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }),
-              let window = scene.windows.first(where: { $0.isKeyWindow }) ?? scene.windows.first,
-              var topVC = window.rootViewController else {
-            return nil
+/// Single glass-capsule control row matching iOS Focus-modes pill aesthetic.
+/// Leading SF Symbol, title, optional description, active-state blue tint.
+///
+/// The glass treatment is applied via `glassEffectCompat(tint:in:)` — the
+/// tint parameter drives both the inactive (subtle white) and active
+/// (saturated blue) appearance directly on the glass layer. Stacking a
+/// `Capsule().fill(...)` underneath would compete with the glass and the
+/// sheet's `.thickMaterial` background, washing the effect out.
+struct ControlPill: View {
+    let icon: String
+    let title: String
+    var description: String? = nil
+    var isActive: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundStyle(.primary)
+                    .frame(width: 32, height: 32)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    if let description {
+                        Text(description)
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 18)
+            .frame(maxWidth: .infinity)
+            .glassEffectCompat(
+                interactive: true,
+                // Active state uses the muted `Color.blue.opacity(0.5)` we
+                // had earlier — survives the glass pass with a softer,
+                // more Control-Center-like blue than `Color.accentColor`
+                // at full opacity. Inactive uses an adaptive primary tint
+                // (dark on light, light on dark) so the pill stays visible
+                // in either app color scheme.
+                tint: isActive ? Color.blue.opacity(0.5) : Color.primary.opacity(0.1),
+                in: Capsule()
+            )
         }
-        while let presented = topVC.presentedViewController {
-            topVC = presented
-        }
-        return topVC
+        .buttonStyle(.plain)
     }
 }
