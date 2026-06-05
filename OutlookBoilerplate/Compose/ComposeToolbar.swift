@@ -21,42 +21,58 @@ import SwiftUI
 /// SwiftUI TextField is free, but no toolbar action triggers anything.
 struct ComposeToolbar: View {
     var body: some View {
+        HStack(spacing: .odsSize120) {
+            actionCapsule
+            copilotFAB
+        }
+        .padding(.horizontal, .odsSpacingHorizontalL)
+        .padding(.bottom, .odsSize120)
+    }
+
+    private var actionCapsule: some View {
         HStack(spacing: 0) {
             toolbarIcon(.attach24Regular)
+            Spacer(minLength: 0)
             toolbarIcon(.camera24Regular)
-            copilotInlineIcon
-            toolbarIcon(.textFont24Regular)
-            toolbarIcon(.calendarClock24Regular)
+            Spacer(minLength: 0)
+            toolbarIcon(.penSparkle24Regular)
+            Spacer(minLength: 0)
+            toolbarIcon(.textEditStyle24Regular)
+            Spacer(minLength: 0)
+            toolbarIcon(.calendarEmpty24Regular)
             Spacer(minLength: 0)
             toolbarIcon(.moreHorizontal24Regular)
         }
-        .padding(.horizontal, .odsSpacingHorizontalS)
-        .padding(.vertical, .odsSpacingVerticalSNudge)
-        .glassEffectCompat()
-        .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
         .padding(.horizontal, .odsSpacingHorizontalL)
-        .padding(.bottom, .odsSize120)
+        .padding(.vertical, .odsSpacingVerticalSNudge)
+        .liquidGlassEffect()
+        .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
     }
 
     private func toolbarIcon(_ icon: OutlookIcon) -> some View {
         Button(action: {}) {
             Image(icon)
                 .renderingMode(.template)
-                .foregroundStyle(ODSPrimitive.brandCommBlue80)
+                .foregroundStyle(Color.odsNeutralForeground1)
                 .frame(width: 36, height: 36)
         }
         .buttonStyle(.plain)
     }
 
-    /// Inline Copilot affordance — production routes this through ComposeCopilotPolarisVC.
-    /// Visually a small Copilot ribbon icon in the toolbar.
-    private var copilotInlineIcon: some View {
+    /// Floating Copilot FAB — same vendored asset as `InboxFloatingActions.swift`.
+    /// Sits as a sibling of the toolbar capsule (matches dev build); production
+    /// routes Copilot through ComposeCopilotPolarisVC. Frame matches the DAB
+    /// height (36pt icon + 6pt × 2 vertical padding = 48pt) so the two surfaces
+    /// align flush along the bottom row.
+    private var copilotFAB: some View {
         Button(action: {}) {
             Image("CopilotIcon")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 22, height: 22)
-                .frame(width: 36, height: 36)
+                .frame(width: .odsSize280, height: .odsSize280)
+                .frame(width: 48, height: 48)
+                .liquidGlassEffect()
+                .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(.plain)
     }
