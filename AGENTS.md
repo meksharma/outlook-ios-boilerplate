@@ -10,10 +10,10 @@ Read ODS specs **only** from `ods-kb/ods/iOS/`. Never read `ods-kb/ods/windowsWe
 
 The iOS rules and shared guardrails load directly from the ODS-KB submodule:
 
-@ods-kb/ods-iOS.md
+@ods-kb/ods/iOS/ods-iOS.md
 @ods-kb/guardrails.md
 
-iOS rules are an early stub (see `ods-iOS.md`). **Reference, never copy** — propose changes upstream in `x3-design/outlook-design-system`, not here.
+iOS rules are an early stub (see `ods/iOS/ods-iOS.md`). **Reference, never copy** — propose changes upstream in `x3-design/outlook-design-system`, not here.
 
 ## Submodule setup
 
