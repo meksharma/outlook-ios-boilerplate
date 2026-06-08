@@ -1,0 +1,3 @@
+[submodule "ods-kb"]
+	path = ods-kb
+	url = https://github.com/x3-design/outlook-design-system.git
