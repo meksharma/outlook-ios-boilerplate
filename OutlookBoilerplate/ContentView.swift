@@ -37,6 +37,9 @@ struct ContentView: View {
     /// chrome (matches dev build).
     @State private var readingPanePresented = false
     @AppStorage("appColorScheme") private var appColorScheme: String = "light"
+    /// Production vs Beta build variant (set in the Designer Tools sheet).
+    /// Drives which Copilot chat sheet renders.
+    @AppStorage("appVariant") private var appVariant: String = "production"
 
     enum Tab: Int, Hashable { case mail = 0, calendar, apps }
 
@@ -44,23 +47,28 @@ struct ContentView: View {
         ZStack {
             currentTabContent
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    VStack(spacing: 0) {
-                        // Reading-pane DAB stacks above BottomNav, both in
-                        // the same safe area inset. Drives the matched
-                        // dev-build layering: DAB above tab pill.
-                        if readingPanePresented {
-                            ReadingPaneActionBar()
+                    // Bottom chrome (DAB + tab pill + Copilot + Compose) hides
+                    // while the Copilot chat sheet is up — the sheet owns the
+                    // bottom of the screen.
+                    if !showingCopilotSheet {
+                        VStack(spacing: 0) {
+                            // Reading-pane DAB stacks above BottomNav, both in
+                            // the same safe area inset. Drives the matched
+                            // dev-build layering: DAB above tab pill.
+                            if readingPanePresented {
+                                ReadingPaneActionBar()
+                            }
+                            BottomNav(
+                                selectedTab: $selectedTab,
+                                showCompose: selectedTab == .mail && !readingPanePresented,
+                                onComposeTap: { showingComposeSheet = true },
+                                onCopilotTap: { showingCopilotSheet = true }
+                            )
+                            // Reading-pane DAB owns the 12pt gap above. When no
+                            // DAB is shown, the BottomNav needs its own 16pt
+                            // breathing room from the content above.
+                            .padding(.top, readingPanePresented ? 0 : 16)
                         }
-                        BottomNav(
-                            selectedTab: $selectedTab,
-                            showCompose: selectedTab == .mail && !readingPanePresented,
-                            onComposeTap: { showingComposeSheet = true },
-                            onCopilotTap: { showingCopilotSheet = true }
-                        )
-                        // Reading-pane DAB owns the 12pt gap above. When no
-                        // DAB is shown, the BottomNav needs its own 16pt
-                        // breathing room from the content above.
-                        .padding(.top, readingPanePresented ? 0 : 16)
                     }
                 }
                 // Apply to the safeAreaInset chain so the BottomNav can
@@ -73,8 +81,13 @@ struct ContentView: View {
             SideDrawerView(isShowing: $showingSideDrawer)
                 .zIndex(1)
 
-            CopilotSheetOverlay(isShowing: $showingCopilotSheet)
-                .zIndex(2)
+            if appVariant == "beta" {
+                CopilotSheetOverlayBeta(isShowing: $showingCopilotSheet)
+                    .zIndex(2)
+            } else {
+                CopilotSheetOverlay(isShowing: $showingCopilotSheet)
+                    .zIndex(2)
+            }
         }
         .animation(.easeOut(duration: 0.25), value: showingSideDrawer)
         .animation(.easeOut(duration: 0.25), value: showingCopilotSheet)
