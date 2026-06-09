@@ -193,11 +193,21 @@ struct InboxHeader: View {
             pillButton("Focused", tab: .focused)
             pillButton("Other", tab: .other)
         }
-        // Outer capsule pinned to `brandCommBlue50` (#0E4775) to match the
-        // dev build empirically. The semantic chain
+        // Outer capsule is mode-adaptive. Light is empirically pinned to
+        // `brandCommBlue50` (#0E4775) — the semantic chain
         // `control/segment/background/3 → brand/background/2 → commBlue70 (#115EA3)`
         // renders too light next to the nav bar's `commBlue80 (#0F6CBD)`.
-        .background(Capsule().fill(ODSPrimitive.brandCommBlue50))
+        // Dark resolves to `odsNeutralBackground2` (neutralGrey12 #1F1F1F); the
+        // static primitive can't adapt, so it stayed blue in dark before this.
+        .background(Capsule().fill(
+            odsDynamic(
+                light: ODSPrimitive.brandCommBlue50,
+                dark: Color.odsNeutralBackground2,
+                iosElevated: Color.odsNeutralBackground2,
+                lightHCC: ODSPrimitive.brandCommBlue50,
+                darkHCC: Color.odsNeutralBackground2
+            )
+        ))
         .clipShape(Capsule())
         .frame(height: .odsSize320)
     }
