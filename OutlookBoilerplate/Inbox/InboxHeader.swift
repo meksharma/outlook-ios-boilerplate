@@ -193,11 +193,21 @@ struct InboxHeader: View {
             pillButton("Focused", tab: .focused)
             pillButton("Other", tab: .other)
         }
-        // Outer capsule pinned to `brandCommBlue50` (#0E4775) to match the
-        // dev build empirically. The semantic chain
+        // Outer capsule is mode-adaptive. Light is empirically pinned to
+        // `brandCommBlue50` (#0E4775) — the semantic chain
         // `control/segment/background/3 → brand/background/2 → commBlue70 (#115EA3)`
         // renders too light next to the nav bar's `commBlue80 (#0F6CBD)`.
-        .background(Capsule().fill(ODSPrimitive.brandCommBlue50))
+        // Dark resolves to `odsNeutralBackground2` (neutralGrey12 #1F1F1F); the
+        // static primitive can't adapt, so it stayed blue in dark before this.
+        .background(Capsule().fill(
+            odsDynamic(
+                light: ODSPrimitive.brandCommBlue50,
+                dark: Color.odsNeutralBackground2,
+                iosElevated: Color.odsNeutralBackground2,
+                lightHCC: ODSPrimitive.brandCommBlue50,
+                darkHCC: Color.odsNeutralBackground2
+            )
+        ))
         .clipShape(Capsule())
         .frame(height: .odsSize320)
     }
@@ -267,31 +277,71 @@ struct InboxHeader: View {
 struct DesignerToolsSheet: View {
     @Binding var appColorScheme: String
 
+    /// Demo (mock) vs Real (Graph) data source. Persisted + auto-synced via
+    /// the AppStorage key. Holds state only for now — the Graph backend that
+    /// would consume `"real"` doesn't exist yet (see Real-Data Mode analysis).
+    @AppStorage("dataMode") private var dataMode: String = "demo"
+
+    /// Production vs Beta build variant. Persisted + auto-synced. No consumer
+    /// yet — the per-variant tab content tree is still to be wired.
+    @AppStorage("appVariant") private var appVariant: String = "production"
+
     private var isDarkMode: Bool { appColorScheme == "dark" }
 
     var body: some View {
         ScrollView {
-            // `GlassEffectContainer` is iOS 26's intended host for views
-            // using `.glassEffect`. It coordinates the glass rendering pass,
-            // morphing/blending neighboring glass shapes and giving each
-            // one the backdrop sample it needs to actually refract.
-            GlassEffectContainerCompat {
-                VStack(spacing: 12) {
-                    ControlPill(
-                        icon: isDarkMode ? "moon.fill" : "sun.max.fill",
-                        title: "Dark Mode",
-                        description: isDarkMode ? "On" : "Off",
-                        isActive: isDarkMode
-                    ) {
-                        appColorScheme = isDarkMode ? "light" : "dark"
-                    }
+            VStack(spacing: 20) {
+                // Environment switches use native segmented controls: binary,
+                // mutually-exclusive, *named* choices read clearest side-by-side.
+                // System control auto-adapts to the sheet's forced light/dark.
+                segmentedSection(title: "Data Source", selection: $dataMode) {
+                    Text("Demo").tag("demo")
+                    Text("Real").tag("real")
+                }
 
-                    // More tools land here as we add them — randomize content,
-                    // simulated states, theme variants, etc.
+                segmentedSection(title: "App Variant", selection: $appVariant) {
+                    Text("Production").tag("production")
+                    Text("Beta").tag("beta")
+                }
+
+                // `GlassEffectContainer` is iOS 26's intended host for views
+                // using `.glassEffect`. It coordinates the glass rendering pass,
+                // morphing/blending neighboring glass shapes and giving each
+                // one the backdrop sample it needs to actually refract.
+                GlassEffectContainerCompat {
+                    VStack(spacing: 12) {
+                        ControlPill(
+                            icon: isDarkMode ? "moon.fill" : "sun.max.fill",
+                            title: "Dark Mode",
+                            description: isDarkMode ? "On" : "Off",
+                            isActive: isDarkMode
+                        ) {
+                            appColorScheme = isDarkMode ? "light" : "dark"
+                        }
+
+                        // More tools land here as we add them — randomize
+                        // content, simulated states, theme variants, etc.
+                    }
                 }
             }
             .padding(.horizontal, 16)
             .padding(.top, 24)
+        }
+    }
+
+    /// Labeled native segmented control — a caption above a `.segmented` Picker.
+    @ViewBuilder
+    private func segmentedSection(
+        title: String,
+        selection: Binding<String>,
+        @ViewBuilder _ segments: () -> some View
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.secondary)
+            Picker(title, selection: selection, content: segments)
+                .pickerStyle(.segmented)
         }
     }
 }
