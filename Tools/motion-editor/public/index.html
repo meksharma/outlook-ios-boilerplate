@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motion Design System</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #21262d;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text2: #8b949e;
+  --accent: #58a6ff;
+  --green: #3fb950;
+  --yellow: #d29922;
+  --red: #f85149;
+  --radius: 10px;
+  --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+/* App shell */
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 24px; display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+header h1 { font-size: 15px; font-weight: 600; }
+header .pill { background: var(--accent); color: #000; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+header .save-btn {
+  margin-left: auto; background: var(--green); color: #000;
+  border: none; padding: 7px 16px; border-radius: 6px;
+  font-weight: 600; font-size: 12px; cursor: pointer;
+}
+header .save-btn:disabled { opacity: 0.35; cursor: default; }
+header .status { font-size: 11px; margin-right: 8px; }
+
+/* Tabs */
+.tab-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; padding: 0 24px; gap: 0; flex-shrink: 0;
+}
+.tab-bar button {
+  background: none; border: none; color: var(--text2);
+  padding: 12px 20px; font-size: 13px; font-weight: 500;
+  cursor: pointer; border-bottom: 2px solid transparent;
+  transition: color 0.15s;
+}
+.tab-bar button:hover { color: var(--text); }
+.tab-bar button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Content */
+.content { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+/* --- EASINGS TAB --- */
+.easing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+.easing-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.easing-card .card-header {
+  display: flex; align-items: center; gap: 10px;
+}
+.easing-card .token-name {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  color: var(--accent); background: var(--bg);
+  border: 1px solid transparent; border-radius: 4px;
+  padding: 4px 8px; flex: 1;
+}
+.easing-card .token-name:hover { border-color: var(--border); }
+.easing-card .token-name:focus { border-color: var(--accent); outline: none; }
+.easing-card .delete-btn {
+  background: none; border: none; color: var(--red);
+  opacity: 0.4; cursor: pointer; font-size: 16px; padding: 4px;
+}
+.easing-card .delete-btn:hover { opacity: 1; }
+
+.curve-canvas {
+  width: 100%; height: 120px;
+  background: var(--bg); border-radius: 6px;
+  cursor: crosshair;
+}
+
+.bezier-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+.bezier-field { display: flex; flex-direction: column; gap: 3px; }
+.bezier-field label { font-size: 9px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.3px; }
+.bezier-field input {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 7px 8px; color: var(--text);
+  font-size: 13px; font-family: var(--mono); width: 100%;
+}
+.bezier-field input:focus { outline: none; border-color: var(--accent); }
+
+.easing-card .preview-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.easing-card .preview-track {
+  flex: 1; height: 6px; background: var(--bg); border-radius: 3px;
+  position: relative; overflow: visible;
+}
+.easing-card .preview-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent); position: absolute;
+  top: -4px; left: 0;
+  transition: none;
+}
+.easing-card .preview-dot.animate { /* set via JS */ }
+.easing-card .play-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: 5px 10px; border-radius: 5px;
+  font-size: 11px; cursor: pointer;
+}
+.easing-card .play-btn:hover { border-color: var(--accent); }
+
+/* --- DURATIONS TAB --- */
+.duration-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+
+.duration-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.duration-card .card-header { display: flex; align-items: center; gap: 8px; }
+.duration-card .token-name {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  color: var(--yellow); background: var(--bg);
+  border: 1px solid transparent; border-radius: 4px;
+  padding: 4px 8px; flex: 1;
+}
+.duration-card .token-name:hover { border-color: var(--border); }
+.duration-card .token-name:focus { border-color: var(--yellow); outline: none; }
+.duration-card .delete-btn { background: none; border: none; color: var(--red); opacity: 0.4; cursor: pointer; font-size: 16px; padding: 4px; }
+.duration-card .delete-btn:hover { opacity: 1; }
+
+.duration-card .dur-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.duration-card .dur-field { display: flex; flex-direction: column; gap: 3px; }
+.duration-card .dur-field label { font-size: 9px; color: var(--text2); text-transform: uppercase; }
+.duration-card .dur-field input {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 7px 8px; color: var(--text);
+  font-size: 13px; font-family: var(--mono); width: 100%;
+}
+.duration-card .dur-field input:focus { outline: none; border-color: var(--yellow); }
+
+.duration-card .dur-bar {
+  height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden;
+}
+.duration-card .dur-bar-fill {
+  height: 100%; background: var(--yellow); border-radius: 2px;
+  transition: width 0.2s;
+}
+
+/* --- COMPONENTS TAB --- */
+.comp-grid { display: flex; flex-direction: column; gap: 12px; }
+
+.comp-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 18px;
+  display: grid; grid-template-columns: 200px 1fr 1fr 60px; gap: 14px;
+  align-items: center;
+}
+.comp-row .comp-name { font-size: 13px; font-weight: 600; }
+.comp-row .comp-file { font-size: 10px; color: var(--text2); font-family: var(--mono); }
+.comp-row select {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 7px 8px; color: var(--text);
+  font-size: 12px; width: 100%; font-family: var(--mono);
+}
+.comp-row select:focus { outline: none; border-color: var(--accent); }
+.comp-row .play-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: 6px 10px; border-radius: 5px;
+  font-size: 11px; cursor: pointer; text-align: center;
+}
+.comp-row .play-btn:hover { border-color: var(--accent); }
+
+.comp-row .no-anim { color: var(--text2); font-size: 12px; font-style: italic; }
+
+/* Add buttons */
+.add-btn {
+  background: transparent; border: 1px dashed var(--border);
+  border-radius: var(--radius); padding: 14px;
+  color: var(--text2); font-size: 13px; cursor: pointer;
+  text-align: center; width: 100%; margin-top: 12px;
+}
+.add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Section label */
+.section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text2); margin-bottom: 16px;
+}
+
+/* Preview overlay */
+.comp-preview-overlay {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; width: 200px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  display: none; flex-direction: column; align-items: center; gap: 10px;
+}
+.comp-preview-overlay.show { display: flex; }
+.comp-preview-overlay .preview-box {
+  width: 44px; height: 44px; background: var(--accent);
+  border-radius: 8px;
+}
+.comp-preview-overlay .label { font-size: 10px; color: var(--text2); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>⚡ Motion Design System</h1>
+    <span class="pill">TOKENS</span>
+    <span class="status" id="status"></span>
+    <button class="save-btn" id="saveBtn" disabled>💾 Save to motion-tokens.json</button>
+  </header>
+  <div class="tab-bar">
+    <button class="active" onclick="switchTab('easings')">Easings</button>
+    <button onclick="switchTab('durations')">Durations</button>
+    <button onclick="switchTab('components')">Components</button>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<div class="comp-preview-overlay" id="previewOverlay">
+  <div class="label">Preview</div>
+  <div class="preview-box" id="previewBox"></div>
+</div>
+
+<script>
+let tokens = null;
+let currentTab = 'easings';
+
+async function init() {
+  const res = await fetch('/api/tokens');
+  tokens = await res.json();
+  render();
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-bar button').forEach(b => { if (b.textContent.toLowerCase().includes(tab.slice(0,4))) b.classList.add('active'); });
+  render();
+}
+
+function render() {
+  if (currentTab === 'easings') renderEasings();
+  else if (currentTab === 'durations') renderDurations();
+  else renderComponents();
+}
+
+// =================== EASINGS ===================
+function renderEasings() {
+  const easings = tokens.motion.easing;
+  let html = '<div class="section-label">Easing Tokens — Cubic Bézier Curves</div><div class="easing-grid">';
+
+  Object.entries(easings).forEach(([name, data]) => {
+    const pts = parseBezier(data.$value);
+    html += `
+      <div class="easing-card" data-name="${name}">
+        <div class="card-header">
+          <input class="token-name" value="${name}" onchange="renameEasing('${name}', this.value)">
+          <button class="delete-btn" onclick="deleteEasing('${name}')">✕</button>
+        </div>
+        <canvas class="curve-canvas" id="canvas-${name}" data-points="${pts.join(',')}"></canvas>
+        <div class="bezier-row">
+          <div class="bezier-field"><label>x1</label><input type="number" step="0.01" value="${pts[0]}" onchange="editEasing('${name}',0,this.value)"></div>
+          <div class="bezier-field"><label>y1</label><input type="number" step="0.01" value="${pts[1]}" onchange="editEasing('${name}',1,this.value)"></div>
+          <div class="bezier-field"><label>x2</label><input type="number" step="0.01" value="${pts[2]}" onchange="editEasing('${name}',2,this.value)"></div>
+          <div class="bezier-field"><label>y2</label><input type="number" step="0.01" value="${pts[3]}" onchange="editEasing('${name}',3,this.value)"></div>
+        </div>
+        <div class="preview-row">
+          <div class="preview-track"><div class="preview-dot" id="dot-${name}"></div></div>
+          <button class="play-btn" onclick="playEasing('${name}')">▶</button>
+        </div>
+      </div>`;
+  });
+
+  html += '</div><button class="add-btn" onclick="addEasing()">+ New Easing Token</button>';
+  document.getElementById('content').innerHTML = html;
+  setTimeout(() => document.querySelectorAll('.curve-canvas').forEach(drawCurve), 30);
+}
+
+function parseBezier(val) {
+  const m = val.match(/cubic-bezier\(([^)]+)\)/);
+  if (m) return m[1].split(',').map(v => parseFloat(v.trim()));
+  return [0, 0, 1, 1];
+}
+
+function editEasing(name, idx, val) {
+  const pts = parseBezier(tokens.motion.easing[name].$value);
+  pts[idx] = parseFloat(val);
+  tokens.motion.easing[name].$value = `cubic-bezier(${pts[0]}, ${pts[1]}, ${pts[2]}, ${pts[3]})`;
+  markDirty();
+  renderEasings();
+}
+
+function renameEasing(oldName, newName) {
+  if (oldName === newName || !newName.trim()) return;
+  const data = tokens.motion.easing[oldName];
+  delete tokens.motion.easing[oldName];
+  tokens.motion.easing[newName.trim()] = data;
+  markDirty();
+  renderEasings();
+}
+
+function deleteEasing(name) {
+  if (!confirm(`Delete easing "${name}"?`)) return;
+  delete tokens.motion.easing[name];
+  markDirty();
+  renderEasings();
+}
+
+function addEasing() {
+  const name = 'newEasing' + Date.now().toString().slice(-4);
+  tokens.motion.easing[name] = { $value: 'cubic-bezier(0.25, 0.1, 0.25, 1.0)', $type: 'cubicBezier', $description: '' };
+  markDirty();
+  renderEasings();
+}
+
+function playEasing(name) {
+  const dot = document.getElementById(`dot-${name}`);
+  if (!dot) return;
+  const pts = parseBezier(tokens.motion.easing[name].$value);
+  const track = dot.parentElement;
+  const maxX = track.offsetWidth - 14;
+
+  dot.style.transition = 'none';
+  dot.style.left = '0px';
+  requestAnimationFrame(() => {
+    dot.style.transition = `left 0.6s cubic-bezier(${pts.join(',')})`;
+    dot.style.left = maxX + 'px';
+    setTimeout(() => { dot.style.transition = 'left 0.3s ease'; dot.style.left = '0px'; }, 800);
+  });
+}
+
+// =================== DURATIONS ===================
+function renderDurations() {
+  const durations = tokens.motion.duration;
+  const maxDur = Math.max(...Object.values(durations).map(d => parseFloat(d.$value)), 1);
+  let html = '<div class="section-label">Duration Tokens</div><div class="duration-grid">';
+
+  Object.entries(durations).forEach(([name, data]) => {
+    const sec = parseFloat(data.$value);
+    const ms = Math.round(sec * 1000);
+    const pct = (sec / maxDur) * 100;
+
+    html += `
+      <div class="duration-card">
+        <div class="card-header">
+          <input class="token-name" value="${name}" onchange="renameDuration('${name}', this.value)">
+          <button class="delete-btn" onclick="deleteDuration('${name}')">✕</button>
+        </div>
+        <div class="dur-inputs">
+          <div class="dur-field"><label>Seconds</label><input type="number" step="0.01" value="${sec}" onchange="editDuration('${name}',this.value,'s')"></div>
+          <div class="dur-field"><label>Milliseconds</label><input type="number" step="1" value="${ms}" onchange="editDuration('${name}',this.value,'ms')"></div>
+        </div>
+        <div class="dur-bar"><div class="dur-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+  });
+
+  html += '</div><button class="add-btn" onclick="addDuration()">+ New Duration Token</button>';
+  document.getElementById('content').innerHTML = html;
+}
+
+function editDuration(name, val, unit) {
+  const sec = unit === 'ms' ? parseFloat(val) / 1000 : parseFloat(val);
+  tokens.motion.duration[name].$value = `${sec}s`;
+  markDirty();
+  renderDurations();
+}
+
+function renameDuration(oldName, newName) {
+  if (oldName === newName || !newName.trim()) return;
+  const data = tokens.motion.duration[oldName];
+  delete tokens.motion.duration[oldName];
+  tokens.motion.duration[newName.trim()] = data;
+  markDirty();
+  renderDurations();
+}
+
+function deleteDuration(name) {
+  if (!confirm(`Delete duration "${name}"?`)) return;
+  delete tokens.motion.duration[name];
+  markDirty();
+  renderDurations();
+}
+
+function addDuration() {
+  const name = 'newDuration' + Date.now().toString().slice(-4);
+  tokens.motion.duration[name] = { $value: '0.3s', $type: 'duration' };
+  markDirty();
+  renderDurations();
+}
+
+// =================== COMPONENTS ===================
+const ALL_COMPONENTS = [
+  { id: 'sideDrawer', name: 'SideDrawerView', file: 'Drawer/SideDrawerView.swift' },
+  { id: 'readingPane', name: 'ReadingPaneView', file: 'Reading/ReadingPaneView.swift' },
+  { id: 'copilotSheet', name: 'CopilotSheetOverlay', file: 'Copilot/CopilotSheetOverlay.swift' },
+  { id: 'composeModal', name: 'ComposeView', file: 'Compose/ComposeView.swift' },
+  { id: 'composeToolbar', name: 'ComposeToolbar', file: 'Compose/ComposeToolbar.swift' },
+  { id: 'tabPill', name: 'TabPill (DAB)', file: 'ContentView.swift' },
+  { id: 'tabCell', name: 'TabCell', file: 'ContentView.swift' },
+  { id: 'bottomNav', name: 'BottomNav', file: 'ContentView.swift' },
+  { id: 'composePillFAB', name: 'ComposePillFAB', file: 'ContentView.swift' },
+  { id: 'copilotPillFAB', name: 'CopilotPillFAB', file: 'ContentView.swift' },
+  { id: 'inboxView', name: 'InboxView', file: 'Inbox/InboxView.swift' },
+  { id: 'inboxHeader', name: 'InboxHeader', file: 'Inbox/InboxHeader.swift' },
+  { id: 'inboxRow', name: 'InboxRow', file: 'Inbox/InboxRow.swift' },
+  { id: 'floatingButton', name: 'ComposeFAB / CopilotFAB', file: 'Inbox/InboxFloatingActions.swift' },
+  { id: 'actionBar', name: 'ReadingPaneActionBar', file: 'Reading/ReadingPaneActionBar.swift' },
+  { id: 'alertDialog', name: 'AlertDialog', file: '—' },
+  { id: 'designerToolsSheet', name: 'DesignerToolsSheet', file: 'Inbox/InboxHeader.swift' },
+  { id: 'controlPill', name: 'ControlPill', file: 'Inbox/InboxHeader.swift' },
+  { id: 'contentView', name: 'ContentView', file: 'ContentView.swift' },
+  { id: 'tabBarIndicator', name: 'TabBar Indicator', file: 'ContentView.swift' },
+];
+
+function renderComponents() {
+  const easingNames = Object.keys(tokens.motion.easing);
+  const durationNames = Object.keys(tokens.motion.duration);
+  const comps = tokens.motion.components || {};
+
+  let html = '<div class="section-label">Component → Token Assignment</div>';
+  html += `<div style="display:grid;grid-template-columns:200px 1fr 1fr 50px;gap:8px;padding:0 18px 8px;font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">
+    <span>Component</span><span>Easing Token</span><span>Duration Token</span><span></span></div>`;
+  html += '<div class="comp-grid">';
+
+  ALL_COMPONENTS.forEach(comp => {
+    const spec = comps[comp.id];
+    const assignedEasing = spec ? (spec._easing || '—') : '—';
+    const assignedDuration = spec ? (spec._duration || '—') : '—';
+
+    const easingOpts = `<option value="—" ${assignedEasing === '—' ? 'selected' : ''}>No Animation</option>` +
+      easingNames.map(n => `<option value="${n}" ${assignedEasing === n ? 'selected' : ''}>${n}</option>`).join('');
+    const durationOpts = `<option value="—" ${assignedDuration === '—' ? 'selected' : ''}>—</option>` +
+      durationNames.map(n => `<option value="${n}" ${assignedDuration === n ? 'selected' : ''}>${n}</option>`).join('');
+
+    html += `
+      <div class="comp-row">
+        <div>
+          <div class="comp-name">${comp.name}</div>
+          <div class="comp-file">${comp.file}</div>
+        </div>
+        <select onchange="assignEasing('${comp.id}', this.value)">${easingOpts}</select>
+        <select onchange="assignDuration('${comp.id}', this.value)">${durationOpts}</select>
+        <button class="play-btn" onclick="playComponent('${comp.id}')">▶</button>
+      </div>`;
+  });
+
+  html += '</div>';
+  document.getElementById('content').innerHTML = html;
+}
+
+function assignEasing(compId, val) {
+  if (!tokens.motion.components) tokens.motion.components = {};
+  if (!tokens.motion.components[compId]) tokens.motion.components[compId] = {};
+  if (val === '—') {
+    delete tokens.motion.components[compId]._easing;
+    // If no duration either, remove the component entry
+    if (!tokens.motion.components[compId]._duration) delete tokens.motion.components[compId];
+  } else {
+    tokens.motion.components[compId]._easing = val;
+  }
+  markDirty();
+  renderComponents();
+}
+
+function assignDuration(compId, val) {
+  if (!tokens.motion.components) tokens.motion.components = {};
+  if (!tokens.motion.components[compId]) tokens.motion.components[compId] = {};
+  if (val === '—') {
+    delete tokens.motion.components[compId]._duration;
+    if (!tokens.motion.components[compId]._easing) delete tokens.motion.components[compId];
+  } else {
+    tokens.motion.components[compId]._duration = val;
+  }
+  markDirty();
+  renderComponents();
+}
+
+function playComponent(compId) {
+  const spec = (tokens.motion.components || {})[compId];
+  if (!spec || !spec._easing) return;
+
+  const pts = parseBezier(tokens.motion.easing[spec._easing].$value);
+  const dur = spec._duration ? parseFloat(tokens.motion.duration[spec._duration].$value) : 0.35;
+
+  const overlay = document.getElementById('previewOverlay');
+  const box = document.getElementById('previewBox');
+  overlay.classList.add('show');
+
+  box.style.transition = 'none';
+  box.style.transform = 'scale(0.5) translateY(20px)';
+  box.style.opacity = '0';
+
+  requestAnimationFrame(() => {
+    box.style.transition = `all ${dur}s cubic-bezier(${pts.join(',')})`;
+    box.style.transform = 'scale(1) translateY(0)';
+    box.style.opacity = '1';
+  });
+
+  setTimeout(() => { overlay.classList.remove('show'); }, (dur + 1) * 1000);
+}
+
+// =================== SAVE ===================
+function markDirty() {
+  document.getElementById('saveBtn').disabled = false;
+  document.getElementById('status').textContent = '● Unsaved';
+  document.getElementById('status').style.color = 'var(--yellow)';
+}
+
+document.getElementById('saveBtn').onclick = async () => {
+  const res = await fetch('/api/tokens', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(tokens)
+  });
+  if (res.ok) {
+    document.getElementById('saveBtn').disabled = true;
+    document.getElementById('status').textContent = '✓ Saved';
+    document.getElementById('status').style.color = 'var(--green)';
+    setTimeout(() => { document.getElementById('status').textContent = ''; }, 2500);
+  }
+};
+
+// =================== CURVE DRAWING ===================
+function drawCurve(canvas) {
+  const pts = canvas.dataset.points.split(',').map(Number);
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.offsetWidth; const h = canvas.offsetHeight;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+  const pad = 12; const gw = w - pad*2; const gh = h - pad*2;
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    ctx.beginPath(); ctx.moveTo(pad + gw/4*i, pad); ctx.lineTo(pad + gw/4*i, pad+gh); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad, pad + gh/4*i); ctx.lineTo(pad+gw, pad + gh/4*i); ctx.stroke();
+  }
+
+  // Diagonal baseline
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(pad, pad+gh); ctx.lineTo(pad+gw, pad); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Bezier curve
+  ctx.strokeStyle = '#58a6ff'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(pad, pad+gh);
+  ctx.bezierCurveTo(
+    pad + pts[0]*gw, pad + gh - pts[1]*gh,
+    pad + pts[2]*gw, pad + gh - pts[3]*gh,
+    pad + gw, pad
+  );
+  ctx.stroke();
+
+  // Control handles
+  ctx.setLineDash([2,2]);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(248,81,73,0.6)';
+  ctx.beginPath(); ctx.moveTo(pad, pad+gh); ctx.lineTo(pad+pts[0]*gw, pad+gh-pts[1]*gh); ctx.stroke();
+  ctx.strokeStyle = 'rgba(63,185,80,0.6)';
+  ctx.beginPath(); ctx.moveTo(pad+gw, pad); ctx.lineTo(pad+pts[2]*gw, pad+gh-pts[3]*gh); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Control points
+  ctx.fillStyle = '#f85149';
+  ctx.beginPath(); ctx.arc(pad+pts[0]*gw, pad+gh-pts[1]*gh, 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#3fb950';
+  ctx.beginPath(); ctx.arc(pad+pts[2]*gw, pad+gh-pts[3]*gh, 5, 0, Math.PI*2); ctx.fill();
+
+  // Endpoints
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.beginPath(); ctx.arc(pad, pad+gh, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(pad+gw, pad, 3, 0, Math.PI*2); ctx.fill();
+}
+
+init();
+</script>
+</body>
+</html>

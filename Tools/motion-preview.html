@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAB Motion Preview — cubic-bezier(0.42, 1.67, 0.21, 0.90)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 32px;
+  }
+
+  h1 {
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .phone-frame {
+    width: 390px;
+    height: 740px;
+    background: #fff;
+    border-radius: 48px;
+    border: 8px solid #1a1a1a;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+
+  .status-bar {
+    height: 54px;
+    background: #0F6CBD;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 20px 8px;
+  }
+
+  .status-bar span {
+    color: white;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .inbox-header {
+    background: #0F6CBD;
+    padding: 12px 20px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #5DA5E8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .search-bar {
+    flex: 1;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    color: rgba(255,255,255,0.8);
+    font-size: 14px;
+  }
+
+  .tabs {
+    display: flex;
+    padding: 8px 20px;
+    background: #0F6CBD;
+    gap: 24px;
+  }
+
+  .tabs span {
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .tabs span.active {
+    color: white;
+    font-weight: 700;
+    border-bottom: 2px solid white;
+    padding-bottom: 6px;
+  }
+
+  .inbox-content {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .email-row {
+    display: flex;
+    padding: 14px 20px;
+    gap: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    align-items: flex-start;
+  }
+
+  .email-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    flex-shrink: 0;
+  }
+
+  .email-content {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .email-sender {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .email-subject {
+    font-size: 14px;
+    color: #333;
+    margin-top: 2px;
+  }
+
+  .email-preview {
+    font-size: 13px;
+    color: #888;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .email-time {
+    font-size: 12px;
+    color: #888;
+    flex-shrink: 0;
+  }
+
+  /* Bottom nav area */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 16px 32px;
+  }
+
+  .tab-pill {
+    display: flex;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(20px);
+    border-radius: 29px;
+    height: 58px;
+    padding: 4px;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2), 0 4px 40px rgba(0,0,0,0.06);
+  }
+
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 25px;
+    padding: 6px 8px;
+  }
+
+  .tab-item.selected {
+    background: #EDEDED;
+  }
+
+  .tab-item .icon {
+    font-size: 20px;
+  }
+
+  .tab-item .label {
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .tab-item.selected .icon,
+  .tab-item.selected .label {
+    color: #0088FF;
+  }
+
+  .tab-item:not(.selected) .icon,
+  .tab-item:not(.selected) .label {
+    color: #242424;
+  }
+
+  /* THE FAB — Compose button */
+  .compose-fab {
+    position: absolute;
+    bottom: 108px;
+    right: 32px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    cursor: pointer;
+
+    /* Animation properties */
+    transform: scale(0);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.42, 1.67, 0.21, 0.90),
+                opacity 0.3s cubic-bezier(0.42, 1.67, 0.21, 0.90);
+  }
+
+  .compose-fab.visible {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  .compose-fab svg {
+    width: 28px;
+    height: 28px;
+    fill: #0F6CBD;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn:active { transform: scale(0.96); }
+
+  .btn-primary {
+    background: #0F6CBD;
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #e8e8e8;
+    color: #333;
+  }
+
+  .curve-info {
+    background: #1a1a1a;
+    color: #4ade80;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+  }
+
+  .loop-indicator {
+    font-size: 13px;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+
+<h1>DAB (Compose FAB) — Entrada Expresiva</h1>
+<div class="curve-info">cubic-bezier(0.42, 1.67, 0.21, 0.90) · duration: 0.5s</div>
+
+<div class="phone-frame">
+  <div class="status-bar"><span>Outlook</span></div>
+  <div class="inbox-header">
+    <div class="avatar">JC</div>
+    <div class="search-bar">🔍 Search</div>
+  </div>
+  <div class="tabs">
+    <span class="active">Focused</span>
+    <span>Other</span>
+  </div>
+  <div class="inbox-content">
+    <div class="email-row">
+      <div class="email-avatar"></div>
+      <div class="email-content">
+        <div class="email-sender">Design Systems AI</div>
+        <div class="email-subject">Motion tokens review</div>
+        <div class="email-preview">Hey team, here are the updated bezier curves for...</div>
+      </div>
+      <div class="email-time">9:41 AM</div>
+    </div>
+    <div class="email-row">
+      <div class="email-avatar"></div>
+      <div class="email-content">
+        <div class="email-sender">Adrian Wul</div>
+        <div class="email-subject">Prototype feedback</div>
+        <div class="email-preview">The animation feels great, let's ship it...</div>
+      </div>
+      <div class="email-time">9:30 AM</div>
+    </div>
+    <div class="email-row">
+      <div class="email-avatar"></div>
+      <div class="email-content">
+        <div class="email-sender">Fluent Team</div>
+        <div class="email-subject">iOS 26 component updates</div>
+        <div class="email-preview">New glass effect tokens are ready for review...</div>
+      </div>
+      <div class="email-time">Yesterday</div>
+    </div>
+    <div class="email-row">
+      <div class="email-avatar"></div>
+      <div class="email-content">
+        <div class="email-sender">x3 Design</div>
+        <div class="email-subject">Boilerplate v2 release</div>
+        <div class="email-preview">We've merged the latest changes to main...</div>
+      </div>
+      <div class="email-time">Yesterday</div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="tab-pill">
+      <div class="tab-item selected">
+        <span class="icon">✉️</span>
+        <span class="label">Mail</span>
+      </div>
+      <div class="tab-item">
+        <span class="icon">📅</span>
+        <span class="label">Calendar</span>
+      </div>
+      <div class="tab-item">
+        <span class="icon">⊞</span>
+        <span class="label">Apps</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compose FAB -->
+  <div class="compose-fab" id="fab">
+    <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+      <path d="M21.7 3.3a4.2 4.2 0 0 1 0 5.9L10.3 20.6a2 2 0 0 1-.9.5l-5.2 1.5a1 1 0 0 1-1.2-1.2l1.5-5.2c.1-.3.3-.6.5-.9L16.4 3.9a4.2 4.2 0 0 1 5.3-.6z"/>
+    </svg>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-primary" id="toggleBtn">▶ Play Entrance</button>
+  <button class="btn btn-secondary" id="loopBtn">🔁 Loop</button>
+  <span class="loop-indicator" id="loopIndicator"></span>
+</div>
+
+<script>
+  const fab = document.getElementById('fab');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const loopBtn = document.getElementById('loopBtn');
+  const loopIndicator = document.getElementById('loopIndicator');
+  let isVisible = false;
+  let looping = false;
+  let loopInterval = null;
+
+  function show() {
+    fab.classList.add('visible');
+    isVisible = true;
+    toggleBtn.textContent = '⏹ Reset';
+  }
+
+  function hide() {
+    fab.classList.remove('visible');
+    isVisible = false;
+    toggleBtn.textContent = '▶ Play Entrance';
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    if (isVisible) {
+      hide();
+    } else {
+      show();
+    }
+  });
+
+  loopBtn.addEventListener('click', () => {
+    if (looping) {
+      clearInterval(loopInterval);
+      looping = false;
+      loopBtn.textContent = '🔁 Loop';
+      loopIndicator.textContent = '';
+    } else {
+      looping = true;
+      loopBtn.textContent = '⏹ Stop Loop';
+      loopIndicator.textContent = 'Looping...';
+      function cycle() {
+        hide();
+        setTimeout(() => show(), 600);
+      }
+      cycle();
+      loopInterval = setInterval(cycle, 1800);
+    }
+  });
+
+  // Auto-play on load
+  setTimeout(() => show(), 800);
+</script>
+</body>
+</html>

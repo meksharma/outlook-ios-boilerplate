@@ -1,0 +1,264 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "Outlook Motion Design System — platform-agnostic motion tokens",
+  "motion": {
+    "duration": {
+      "instant": {
+        "$value": "0.05s",
+        "$type": "duration"
+      },
+      "fast": {
+        "$value": "0.15s",
+        "$type": "duration"
+      },
+      "normal": {
+        "$value": "0.25s",
+        "$type": "duration"
+      },
+      "moderate": {
+        "$value": "0.35s",
+        "$type": "duration"
+      },
+      "slow": {
+        "$value": "0.50s",
+        "$type": "duration"
+      },
+      "gentle": {
+        "$value": "0.70s",
+        "$type": "duration"
+      }
+    },
+    "easing": {
+      "enter": {
+        "$value": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+        "$type": "cubicBezier",
+        "$description": "Decelerate — content arriving"
+      },
+      "exit": {
+        "$value": "cubic-bezier(0.4, 0.0, 1.0, 1.0)",
+        "$type": "cubicBezier",
+        "$description": "Accelerate — content leaving"
+      },
+      "standard": {
+        "$value": "cubic-bezier(0.8, 0.0, 0.2, 1.0)",
+        "$type": "cubicBezier",
+        "$description": "Symmetric ease — repositions"
+      },
+      "emphasized": {
+        "$value": "cubic-bezier(0.05, 0.7, 0.1, 1.0)",
+        "$type": "cubicBezier",
+        "$description": "Expressive spring-like — hero transitions"
+      },
+      "linear": {
+        "$value": "cubic-bezier(0.0, 0.0, 1.0, 1.0)",
+        "$type": "cubicBezier",
+        "$description": "Constant rate — progress bars"
+      },
+      "bounce": {
+        "$value": "cubic-bezier(0.34, 1.54, 0.64, 1)",
+        "$type": "cubicBezier",
+        "$description": "Overshoot — playful confirmations"
+      }
+    },
+    "composite": {
+      "surface": {
+        "enter": {
+          "$type": "motion",
+          "easing": {
+            "$value": "{motion.easing.enter}"
+          },
+          "duration": {
+            "$value": "{motion.duration.moderate}"
+          },
+          "$description": "Surface slides/fades into view"
+        },
+        "exit": {
+          "$type": "motion",
+          "easing": {
+            "$value": "{motion.easing.exit}"
+          },
+          "duration": {
+            "$value": "{motion.duration.normal}"
+          },
+          "$description": "Surface slides/fades out of view"
+        }
+      },
+      "content": {
+        "enter": {
+          "$type": "motion",
+          "easing": {
+            "$value": "{motion.easing.enter}"
+          },
+          "duration": {
+            "$value": "{motion.duration.normal}"
+          },
+          "$description": "Content element fades/scales in"
+        },
+        "exit": {
+          "$type": "motion",
+          "easing": {
+            "$value": "{motion.easing.exit}"
+          },
+          "duration": {
+            "$value": "{motion.duration.fast}"
+          },
+          "$description": "Content element fades/scales out"
+        }
+      },
+      "reposition": {
+        "$type": "motion",
+        "easing": {
+          "$value": "{motion.easing.standard}"
+        },
+        "duration": {
+          "$value": "{motion.duration.normal}"
+        },
+        "$description": "Element moves within same layout"
+      },
+      "hero": {
+        "$type": "motion",
+        "easing": {
+          "$value": "{motion.easing.emphasized}"
+        },
+        "duration": {
+          "$value": "{motion.duration.slow}"
+        },
+        "$description": "Shared-element hero transition"
+      },
+      "feedback": {
+        "$type": "motion",
+        "easing": {
+          "$value": "{motion.easing.standard}"
+        },
+        "duration": {
+          "$value": "{motion.duration.fast}"
+        },
+        "$description": "Tap/press micro-interaction"
+      },
+      "stagger": {
+        "child": {
+          "$type": "motion",
+          "easing": {
+            "$value": "{motion.easing.enter}"
+          },
+          "duration": {
+            "$value": "{motion.duration.normal}"
+          },
+          "$description": "Per-item staggered entrance"
+        },
+        "delay": {
+          "$value": "0.04s",
+          "$type": "duration",
+          "$description": "Incremental delay between staggered children"
+        }
+      }
+    },
+    "components": {
+      "sideDrawer": {
+        "enter": {
+          "$value": "{motion.composite.surface.enter}",
+          "transform": "translateX(-100%) → 0"
+        },
+        "exit": {
+          "$value": "{motion.composite.surface.exit}",
+          "transform": "translateX(0) → -100%"
+        },
+        "scrim": {
+          "enter": {
+            "$value": "{motion.composite.content.enter}",
+            "transform": "opacity 0 → 0.4"
+          },
+          "exit": {
+            "$value": "{motion.composite.content.exit}",
+            "transform": "opacity 0.4 → 0"
+          }
+        }
+      },
+      "readingPane": {
+        "enter": {
+          "$value": "{motion.composite.surface.enter}",
+          "transform": "translateX(100%) → 0"
+        },
+        "exit": {
+          "$value": "{motion.composite.surface.exit}",
+          "transform": "translateX(0) → 100%"
+        }
+      },
+      "composeModal": {
+        "enter": {
+          "$value": "{motion.composite.hero}",
+          "transform": "translateY(100%) → 0"
+        },
+        "exit": {
+          "$value": "{motion.composite.surface.exit}",
+          "transform": "translateY(0) → 100%"
+        }
+      },
+      "alertDialog": {
+        "enter": {
+          "$value": "{motion.composite.content.enter}",
+          "transform": "scale(0.85) + opacity 0 → 1"
+        },
+        "exit": {
+          "$value": "{motion.composite.content.exit}",
+          "transform": "scale(1) → 0.85 + opacity 0"
+        }
+      },
+      "inboxRow": {
+        "appear": {
+          "$value": "{motion.composite.stagger.child}",
+          "transform": "translateY(8) + opacity 0 → 1"
+        },
+        "staggerDelay": {
+          "$value": "{motion.composite.stagger.delay}"
+        }
+      },
+      "floatingButton": {
+        "enter": {
+          "$value": "{motion.composite.content.enter}",
+          "transform": "scale(0) → 1"
+        },
+        "exit": {
+          "$value": "{motion.composite.content.exit}",
+          "transform": "scale(1) → 0"
+        },
+        "tap": {
+          "$value": "{motion.composite.feedback}",
+          "transform": "scale(1) → 0.92 → 1"
+        }
+      },
+      "tabBarIndicator": {
+        "reposition": {
+          "$value": "{motion.composite.reposition}",
+          "transform": "translateX to target"
+        }
+      },
+      "avatar": {
+        "tap": {
+          "$value": "{motion.composite.feedback}",
+          "transform": "scale(1) → 0.9 → 1"
+        }
+      },
+      "inboxHeader": {
+        "scroll": {
+          "$value": "{motion.composite.reposition}",
+          "transform": "translateY(0) → -height"
+        }
+      },
+      "actionBar": {
+        "enter": {
+          "$value": "{motion.composite.content.enter}",
+          "transform": "translateY(48) + opacity 0 → 1"
+        },
+        "exit": {
+          "$value": "{motion.composite.content.exit}",
+          "transform": "translateY(0→48) + opacity 0"
+        }
+      },
+      "copilotPillFAB": {
+        "_easing": "bounce",
+        "_duration": "normal"
+      }
+    }
+  }
+}

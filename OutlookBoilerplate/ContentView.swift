@@ -89,8 +89,8 @@ struct ContentView: View {
                     .zIndex(2)
             }
         }
-        .animation(.easeOut(duration: 0.25), value: showingSideDrawer)
-        .animation(.easeOut(duration: 0.25), value: showingCopilotSheet)
+        .animation(MotionComponent.sideDrawer.enterAnimation, value: showingSideDrawer)
+        .animation(MotionComponent.copilotSheet.enterAnimation, value: showingCopilotSheet)
         .fluentTheme(FluentTheme.shared)
         .environment(\.colorScheme, appColorScheme == "dark" ? .dark : .light)
     }
@@ -144,8 +144,16 @@ struct BottomNav: View {
                 ComposePillFAB(action: onComposeTap)
                     .padding(.trailing, 16)
                     .offset(y: -68)
+                    .transition(
+                        .scale(scale: 0, anchor: .bottom)
+                        .combined(with: .opacity)
+                    )
             }
         }
+        .animation(
+            MotionComponent.composePillFAB.enterAnimation,
+            value: showCompose
+        )
     }
 }
 
@@ -153,6 +161,7 @@ struct BottomNav: View {
 
 struct TabPill: View {
     @Binding var selectedTab: ContentView.Tab
+    @State private var appeared = false
 
     var body: some View {
         HStack(spacing: 4) {
@@ -182,6 +191,13 @@ struct TabPill: View {
         .frame(maxWidth: .infinity)
         .frame(height: 58)
         .liquidGlassEffect()
+        .offset(y: appeared ? 0 : 20)
+        .opacity(appeared ? 1 : 0)
+        .animation(
+            MotionComponent.tabPill.enterAnimation,
+            value: appeared
+        )
+        .onAppear { appeared = true }
     }
 }
 
@@ -202,6 +218,7 @@ struct TabCell: View {
             ZStack {
                 if selected {
                     Capsule().fill(Self.selectedFill)
+                        .transition(.scale(scale: 0).combined(with: .opacity))
                 }
                 VStack(spacing: 1) {
                     Image(selected ? iconFilled : iconRegular)
@@ -217,6 +234,10 @@ struct TabCell: View {
                 .padding(.horizontal, 8)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(
+                MotionComponent.tabCell.enterAnimation,
+                value: selected
+            )
         }
         .buttonStyle(.plain)
     }

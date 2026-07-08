@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAB Motion Preview — cubic-bezier(0.42, 1.67, 0.21, 0.90)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 32px;
+  }
+
+  h1 { font-size: 16px; color: #333; font-weight: 600; }
+
+  .phone-frame {
+    width: 390px;
+    height: 740px;
+    background: #fff;
+    border-radius: 48px;
+    border: 8px solid #1a1a1a;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+
+  .status-bar {
+    height: 54px;
+    background: #0F6CBD;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 20px 8px;
+  }
+  .status-bar span { color: white; font-size: 17px; font-weight: 600; }
+
+  .inbox-header {
+    background: #0F6CBD;
+    padding: 12px 20px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #5DA5E8;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 14px; font-weight: 600;
+  }
+
+  .search-bar {
+    flex: 1; height: 36px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 18px;
+    display: flex; align-items: center;
+    padding: 0 14px;
+    color: rgba(255,255,255,0.8); font-size: 14px;
+  }
+
+  .tabs {
+    display: flex; padding: 8px 20px; background: #0F6CBD; gap: 24px;
+  }
+  .tabs span { color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 500; }
+  .tabs span.active { color: white; font-weight: 700; border-bottom: 2px solid white; padding-bottom: 6px; }
+
+  .email-row {
+    display: flex; padding: 14px 20px; gap: 12px;
+    border-bottom: 1px solid #f0f0f0; align-items: flex-start;
+  }
+  .email-avatar { width: 40px; height: 40px; border-radius: 50%; background: #e0e0e0; flex-shrink: 0; }
+  .email-content { flex: 1; overflow: hidden; }
+  .email-sender { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .email-subject { font-size: 14px; color: #333; margin-top: 2px; }
+  .email-preview { font-size: 13px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .email-time { font-size: 12px; color: #888; flex-shrink: 0; }
+
+  /* ===== DAB (Tab Pill Bar) ===== */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 16px 16px 32px;
+  }
+
+  .tab-pill {
+    display: flex;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 29px;
+    height: 58px;
+    padding: 4px;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2), 0 4px 40px rgba(0,0,0,0.06);
+
+    /* ENTRANCE ANIMATION */
+    transform: translateY(20px);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.42, 1.67, 0.21, 0.90),
+                opacity 0.4s cubic-bezier(0.42, 1.67, 0.21, 0.90);
+  }
+
+  .tab-pill.visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 25px;
+    padding: 6px 8px;
+    cursor: pointer;
+    position: relative;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Selection highlight capsule */
+  .tab-item .highlight {
+    position: absolute;
+    inset: 0;
+    border-radius: 25px;
+    background: #EDEDED;
+    transform: scale(0);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.42, 1.67, 0.21, 0.90),
+                opacity 0.2s ease;
+  }
+
+  .tab-item.selected .highlight {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  .tab-item .icon {
+    font-size: 20px;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s;
+  }
+
+  .tab-item .label {
+    font-size: 10px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s;
+  }
+
+  .tab-item.selected .icon,
+  .tab-item.selected .label {
+    color: #0088FF;
+  }
+
+  .tab-item:not(.selected) .icon,
+  .tab-item:not(.selected) .label {
+    color: #242424;
+  }
+
+  /* Controls */
+  .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
+
+  .btn {
+    padding: 12px 24px; border-radius: 8px; border: none;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary { background: #0F6CBD; color: white; }
+  .btn-secondary { background: #e8e8e8; color: #333; }
+
+  .curve-info {
+    background: #1a1a1a; color: #4ade80;
+    padding: 10px 20px; border-radius: 8px;
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
+  }
+
+  .legend {
+    font-size: 13px; color: #666; max-width: 390px; text-align: center; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<h1>DAB (Tab Pill) — Entrada Expresiva + Selection Scale</h1>
+<div class="curve-info">cubic-bezier(0.42, 1.67, 0.21, 0.90) · duration: 0.5s</div>
+
+<div class="phone-frame">
+  <div class="status-bar"><span>Outlook</span></div>
+  <div class="inbox-header">
+    <div class="avatar">JC</div>
+    <div class="search-bar">🔍 Search</div>
+  </div>
+  <div class="tabs">
+    <span class="active">Focused</span>
+    <span>Other</span>
+  </div>
+
+  <div class="email-row">
+    <div class="email-avatar"></div>
+    <div class="email-content">
+      <div class="email-sender">Design Systems AI</div>
+      <div class="email-subject">Motion tokens review</div>
+      <div class="email-preview">Hey team, here are the updated bezier curves for...</div>
+    </div>
+    <div class="email-time">9:41 AM</div>
+  </div>
+  <div class="email-row">
+    <div class="email-avatar"></div>
+    <div class="email-content">
+      <div class="email-sender">Adrian Wul</div>
+      <div class="email-subject">Prototype feedback</div>
+      <div class="email-preview">The animation feels great, let's ship it...</div>
+    </div>
+    <div class="email-time">9:30 AM</div>
+  </div>
+  <div class="email-row">
+    <div class="email-avatar"></div>
+    <div class="email-content">
+      <div class="email-sender">Fluent Team</div>
+      <div class="email-subject">iOS 26 component updates</div>
+      <div class="email-preview">New glass effect tokens are ready for review...</div>
+    </div>
+    <div class="email-time">Yesterday</div>
+  </div>
+  <div class="email-row">
+    <div class="email-avatar"></div>
+    <div class="email-content">
+      <div class="email-sender">x3 Design</div>
+      <div class="email-subject">Boilerplate v2 release</div>
+      <div class="email-preview">We've merged the latest changes to main...</div>
+    </div>
+    <div class="email-time">Yesterday</div>
+  </div>
+
+  <!-- DAB — Tab Pill Bar -->
+  <div class="bottom-nav">
+    <div class="tab-pill" id="tabPill">
+      <div class="tab-item selected" data-tab="mail" onclick="selectTab(this)">
+        <div class="highlight"></div>
+        <span class="icon">✉️</span>
+        <span class="label">Mail</span>
+      </div>
+      <div class="tab-item" data-tab="calendar" onclick="selectTab(this)">
+        <div class="highlight"></div>
+        <span class="icon">📅</span>
+        <span class="label">Calendar</span>
+      </div>
+      <div class="tab-item" data-tab="apps" onclick="selectTab(this)">
+        <div class="highlight"></div>
+        <span class="icon">⊞</span>
+        <span class="label">Apps</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-primary" id="entranceBtn">▶ Play Entrance</button>
+  <button class="btn btn-secondary" id="loopBtn">🔁 Loop</button>
+</div>
+
+<p class="legend">
+  <strong>Entrada:</strong> translateY(20px) → 0 con overshoot · 
+  <strong>Selection:</strong> haz click en los tabs — el highlight escala de 0% → 100% con la misma curva expresiva
+</p>
+
+<script>
+  const tabPill = document.getElementById('tabPill');
+  const entranceBtn = document.getElementById('entranceBtn');
+  const loopBtn = document.getElementById('loopBtn');
+  let isVisible = false;
+  let looping = false;
+  let loopInterval = null;
+
+  function showPill() {
+    tabPill.classList.add('visible');
+    isVisible = true;
+    entranceBtn.textContent = '⏹ Reset';
+  }
+
+  function hidePill() {
+    tabPill.classList.remove('visible');
+    isVisible = false;
+    entranceBtn.textContent = '▶ Play Entrance';
+  }
+
+  entranceBtn.addEventListener('click', () => {
+    if (isVisible) { hidePill(); } else { showPill(); }
+  });
+
+  loopBtn.addEventListener('click', () => {
+    if (looping) {
+      clearInterval(loopInterval);
+      looping = false;
+      loopBtn.textContent = '🔁 Loop';
+    } else {
+      looping = true;
+      loopBtn.textContent = '⏹ Stop';
+      function cycle() { hidePill(); setTimeout(() => showPill(), 600); }
+      cycle();
+      loopInterval = setInterval(cycle, 1800);
+    }
+  });
+
+  function selectTab(el) {
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  // Auto-play entrance on load
+  setTimeout(() => showPill(), 800);
+</script>
+</body>
+</html>
