@@ -43,6 +43,11 @@ public enum OutlookIcon: String, CaseIterable, Sendable {
     case arrowReply24Regular       = "ic_fluent_arrow_reply_24_regular"
     case delete24Regular           = "ic_fluent_delete_24_regular"
     case shield16Filled            = "ic_fluent_shield_16_filled"
+    case flag20Filled              = "ic_fluent_flag_20_filled"
+    case pin20Filled               = "ic_fluent_pin_20_filled"
+    case airplane24Filled          = "ic_fluent_airplane_24_filled"
+    case vehicleTruckCube24Filled  = "ic_fluent_vehicle_truck_cube_24_filled"
+    case info24Filled              = "ic_fluent_info_24_filled"
 
     // Filter pill, chevrons
     case filter20Regular           = "ic_fluent_filter_20_regular"

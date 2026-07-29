@@ -58,12 +58,26 @@ struct InboxRow: View {
             .padding(.leading, 4)      // Figma `pl-[4px]`
             .padding(.trailing, .odsSpacingHorizontalL)  // Figma `pr-[16px]`
 
+            delegatedOwnerInfo
+
             if isLastInSection {
                 Divider()
             }
         }
-        .background(Color.odsNeutralBackground1)
+        .background(rowBackground)
         .contentShape(Rectangle())
+    }
+
+    /// Production gives flagged rows priority over pinned rows when both states
+    /// are present (`SnippetCell.updateBackgroundColors`).
+    private var rowBackground: Color {
+        if thread.isFlagged {
+            return Color.odsStatusPresenceAway.opacity(0.12)
+        }
+        if thread.isPinned {
+            return Color.odsBrandBackgroundTint2
+        }
+        return Color.odsNeutralBackground1
     }
 
     // MARK: - Left column (notification rail + avatar)
@@ -115,6 +129,7 @@ struct InboxRow: View {
             row1
             row2
             row3
+            SnippetCellActionView(meeting: thread.meeting, txp: thread.txp)
         }
     }
 
@@ -127,7 +142,7 @@ struct InboxRow: View {
             }
 
             Text(thread.sender)
-                .font(.odsMailListSender)
+                .font(thread.isUnread ? .odsBody1Strong : .odsBody1)
                 .tracking(-0.408)
                 .foregroundStyle(Color.odsNeutralForeground1)
                 .lineLimit(1)
@@ -159,11 +174,9 @@ struct InboxRow: View {
             )
     }
 
-    /// Row 2 — subject + trailing 20pt icon slot (calendar / attachment / etc.).
-    /// Slot stays reserved even when no icon renders so the subject's truncation
-    /// point is stable across rows. Variant-specific icons populate in a follow-up.
+    /// Row 2 — subject + production triage/status icons.
     private var row2: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .center, spacing: 4) {
             Text(thread.subject)
                 .font(.odsBody2)
                 .tracking(-0.24)
@@ -171,20 +184,87 @@ struct InboxRow: View {
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Color.clear.frame(width: 20, height: 20)
+            statusIcons
         }
+    }
+
+    @ViewBuilder
+    private var statusIcons: some View {
+        if thread.hasAttachment {
+            statusIcon(.attach24Regular, color: .odsNeutralForeground2)
+        }
+        if thread.meeting != nil {
+            statusIcon(.calendarEmpty24Regular, color: .odsBrandForeground1)
+        }
+        if thread.isPinned {
+            statusIcon(.pin20Filled, color: .odsBrandForeground1)
+        }
+        if thread.isFlagged {
+            statusIcon(.flag20Filled, color: .odsStatusDangerForeground2)
+        }
+        if thread.isImportant {
+            Image(systemName: "exclamationmark")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(Color.odsStatusDangerForeground2)
+                .frame(width: 20, height: 20)
+        }
+        if thread.conversationCount > 1 {
+            Text("\(thread.conversationCount)")
+                .font(.odsCaption1)
+                .foregroundStyle(Color.odsNeutralForeground2)
+                .frame(minWidth: 20, minHeight: 24)
+                .background(Color.odsNeutralBackground4, in: RoundedRectangle(cornerRadius: 4))
+        }
+    }
+
+    private func statusIcon(_ icon: OutlookIcon, color: Color) -> some View {
+        Image(icon)
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .foregroundStyle(color)
+            .frame(width: 20, height: 20)
     }
 
     /// Row 3 — body preview. Up to 2 lines, ellipsis. Full width — nothing
     /// trailing it. Figma `pt-px` ≈ 1pt top padding.
     private var row3: some View {
-        Text(thread.preview)
-            .font(.odsBody2)
-            .tracking(-0.24)
-            .foregroundStyle(Color.odsNeutralForeground2)
-            .lineLimit(2)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 1)
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            if let category = thread.categories.first {
+                Text(category)
+                    .font(.odsCaption1)
+                    .foregroundStyle(Color.odsStatusWarningForeground1)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 1)
+                    .background(Color.odsStatusWarningBackground1, in: RoundedRectangle(cornerRadius: 3))
+            }
+
+            Text(thread.preview)
+                .font(.odsBody2)
+                .tracking(-0.24)
+                .foregroundStyle(Color.odsNeutralForeground2)
+                .lineLimit(thread.meeting == nil && thread.txp == nil ? 2 : 1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.top, 1)
+    }
+
+    @ViewBuilder
+    private var delegatedOwnerInfo: some View {
+        if thread.meeting?.kind == .delegated, let owner = thread.meeting?.delegateOwner {
+            HStack(spacing: .odsSpacingHorizontalS) {
+                Image(.info24Filled)
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.odsBrandForeground1)
+
+                Text("Received for \(owner).")
+                    .font(.odsBody1)
+                    .foregroundStyle(Color.odsNeutralForeground1)
+            }
+            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .background(Color.odsNeutralBackground1)
+        }
     }
 }
 

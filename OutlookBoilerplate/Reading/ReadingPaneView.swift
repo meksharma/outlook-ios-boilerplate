@@ -31,7 +31,13 @@ struct ReadingPaneView: View {
             VStack(alignment: .leading, spacing: 0) {
                 senderBlock
                 Divider()
+                if let meeting = thread.meeting {
+                    MeetingScenarioCard(meeting: meeting)
+                }
                 bodyContent
+                if !thread.attachments.isEmpty {
+                    AttachmentWellView(attachments: thread.attachments)
+                }
             }
         }
         .background(Color.odsNeutralBackground1)
@@ -90,6 +96,7 @@ struct ReadingPaneView: View {
         .padding(.vertical, .odsSpacingHorizontalL)
     }
 
+    @ViewBuilder
     private var bodyContent: some View {
         VStack(alignment: .leading, spacing: .odsSpacingVerticalS) {
             Text(workIQBody?.displayText ?? thread.body)

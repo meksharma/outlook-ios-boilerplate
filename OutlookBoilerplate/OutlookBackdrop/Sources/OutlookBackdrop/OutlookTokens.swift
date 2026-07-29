@@ -2,7 +2,7 @@ import FluentUI
 import SwiftUI
 
 // Outlook design tokens for iOS, mirroring the canonical Foundation files in
-// outlook-design-system/ods/iOS/Foundations/. Three side-by-side namespaces:
+// outlook-design-system/ods/ios/Foundations/. Three side-by-side namespaces:
 //
 //   - Font  — composed text styles (Title 1, Body 1 Strong, …)
 //   - Color — alias tokens that route through FluentTheme.shared
@@ -14,7 +14,7 @@ import SwiftUI
 
 // MARK: - Font (Layer 2 — composed text styles)
 //
-// Sourced from `outlook-design-system/ods/iOS/Foundations/typography-1.1.yaml`
+// Sourced from `outlook-design-system/ods/ios/Foundations/typography-1.1.yaml`
 // (the canonical Variables-file extraction). Every *Strong style resolves to
 // `Weight/Exceptions/500&600` which on iOS is **Semibold**. Earlier helper
 // drafts ran on a misread (treating 510 as a "snap to nearest" interpolation);
@@ -133,7 +133,7 @@ public extension CGFloat {
 
 // MARK: - Motion (durations + cubic-bezier easings)
 //
-// Sourced from `outlook-design-system/ods/iOS/Foundations/motion-1.0.yaml`
+// Sourced from `outlook-design-system/ods/ios/Foundations/motion-1.0.yaml`
 // (converted from the Figma Variables Motion.json export). Easing tokens are
 // cubic-bezier control points (P1.x, P1.y, P2.x, P2.y) that feed straight into
 // SwiftUI's `.timingCurve(_, _, _, _, duration:)`. Durations are seconds

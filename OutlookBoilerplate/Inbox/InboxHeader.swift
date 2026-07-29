@@ -277,6 +277,8 @@ struct InboxHeader: View {
 struct DesignerToolsSheet: View {
     @Binding var appColorScheme: String
 
+    @Environment(\.dismiss) private var dismiss
+
     /// Production vs Beta build variant. Persisted + auto-synced. No consumer
     /// yet — the per-variant tab content tree is still to be wired.
     @AppStorage("appVariant") private var appVariant: String = "production"
@@ -324,6 +326,21 @@ struct DesignerToolsSheet: View {
 
                         // More tools land here as we add them — randomize
                         // content, simulated states, theme variants, etc.
+
+                        // Opens the shared bug-report form. Dismiss this sheet
+                        // first, then post the request after the dismiss
+                        // animation so the screenshot captures the underlying
+                        // screen — not this panel.
+                        ControlPill(
+                            icon: "ladybug.fill",
+                            title: "Report a Bug",
+                            description: "Screenshot + details"
+                        ) {
+                            dismiss()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                                NotificationCenter.default.post(name: .requestBugReport, object: nil)
+                            }
+                        }
                     }
                 }
             }
@@ -398,6 +415,11 @@ struct ControlPill: View {
                 tint: isActive ? Color.blue.opacity(0.5) : Color.primary.opacity(0.1),
                 in: Capsule()
             )
+            // Make the whole pill tappable, not just the icon + text. Without
+            // this, `.buttonStyle(.plain)` only hit-tests the opaque label
+            // content, so taps in the empty trailing area (and the padding)
+            // fall through. The shape matches the glass Capsule.
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
     }

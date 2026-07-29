@@ -2,7 +2,7 @@
 
 // Layer 1 — Fluent 2 color primitives (the subset Outlook Mobile references,
 // plus the full Communication-blue and grey ramps for escape-hatch use).
-// Source: ods/iOS/Foundations/Colors/fluent2-primitives-1.0.yaml
+// Source: ods/ios/Foundations/Colors/fluent2-primitives-1.0.yaml
 
 import SwiftUI
 

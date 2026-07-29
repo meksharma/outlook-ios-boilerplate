@@ -60,7 +60,16 @@ struct InboxThread: Identifiable, Hashable {
     /// Whether the user flagged the thread. Maps to `SnippetCellModel.flagged`.
     let isFlagged: Bool
 
+    /// Whether the user pinned the thread. Maps to `SnippetCellModel.pinned`.
+    /// Defaults to false so live Work IQ messages do not need synthetic state.
+    var isPinned: Bool = false
     var profilePhotoURL: URL? = nil
+    var attachments: [MessageAttachment] = []
+    var meeting: MeetingScenario? = nil
+    var txp: TxpScenario? = nil
+    var isImportant: Bool = false
+    var categories: [String] = []
+    var conversationCount: Int = 1
 
     /// Optional persona avatar. When set, the row renders the persona's photo;
     /// when nil (e.g. organizational senders like "Microsoft Learn"), the row
@@ -80,7 +89,14 @@ struct InboxThread: Identifiable, Hashable {
         isExternalSender: Bool,
         hasAttachment: Bool,
         isFlagged: Bool,
+        isPinned: Bool = false,
         profilePhotoURL: URL? = nil,
+        attachments: [MessageAttachment] = [],
+        meeting: MeetingScenario? = nil,
+        txp: TxpScenario? = nil,
+        isImportant: Bool = false,
+        categories: [String] = [],
+        conversationCount: Int = 1,
         persona: Persona? = nil
     ) {
         self.id = id
@@ -93,9 +109,16 @@ struct InboxThread: Identifiable, Hashable {
         self.timeStamp = timeStamp
         self.isUnread = isUnread
         self.isExternalSender = isExternalSender
-        self.hasAttachment = hasAttachment
+        self.hasAttachment = hasAttachment || !attachments.isEmpty
         self.isFlagged = isFlagged
+        self.isPinned = isPinned
         self.profilePhotoURL = profilePhotoURL
+        self.attachments = attachments
+        self.meeting = meeting
+        self.txp = txp
+        self.isImportant = isImportant
+        self.categories = categories
+        self.conversationCount = conversationCount
         self.persona = persona
     }
 }
@@ -128,6 +151,11 @@ let sampleThreads: [InboxThread] = [
         isExternalSender: false,
         hasAttachment: true,
         isFlagged: false,
+        attachments: [
+            MessageAttachment(name: "Q2 Design Review.pdf", detail: "PDF · 4.8 MB"),
+            MessageAttachment(name: "Navigation concepts.png", detail: "PNG · 2.1 MB", kind: .image),
+            MessageAttachment(name: "Review deck.pptx", detail: "PPTX · 12.4 MB"),
+        ],
         persona: .sarahPerez
     ),
     InboxThread(
@@ -155,6 +183,10 @@ let sampleThreads: [InboxThread] = [
         isExternalSender: false,
         hasAttachment: true,
         isFlagged: false,
+        attachments: [
+            MessageAttachment(name: "Project Greenlight", detail: "Shared Excel workbook", kind: .cloudLink),
+            MessageAttachment(name: "Kickoff scope.docx", detail: "DOCX · 680 KB"),
+        ],
         persona: .mauricioAugust
     ),
     InboxThread(
@@ -233,6 +265,9 @@ let sampleThreads: [InboxThread] = [
         isExternalSender: false,
         hasAttachment: true,
         isFlagged: true,
+        attachments: [
+            MessageAttachment(name: "Round 2 research findings.pdf", detail: "PDF · 7.2 MB"),
+        ],
         persona: .erikaFuller
     ),
     InboxThread(
@@ -259,6 +294,16 @@ let sampleThreads: [InboxThread] = [
         isExternalSender: false,
         hasAttachment: false,
         isFlagged: false,
+        meeting: MeetingScenario(
+            kind: .updated,
+            title: "Sprint planning",
+            dateLine: "Tuesday, July 29 · 10:00–11:00 AM",
+            location: "Teams meeting",
+            organizer: "Devon Brooks",
+            detail: "The meeting moved from Monday to Tuesday.",
+            response: .accepted,
+            previousDetail: "Previously Monday, July 28 · 10:00 AM"
+        ),
         persona: .andreLawson
     ),
     InboxThread(
@@ -341,6 +386,7 @@ let sampleThreads: [InboxThread] = [
         isExternalSender: false,
         hasAttachment: false,
         isFlagged: false,
+        isPinned: true,
         persona: .robinCounts
     ),
     InboxThread(
@@ -368,6 +414,250 @@ let sampleThreads: [InboxThread] = [
         isExternalSender: false,
         hasAttachment: false,
         isFlagged: false,
+        meeting: MeetingScenario(
+            kind: .invitation,
+            title: "Welcome coffee",
+            dateLine: "Monday, August 3 · 9:30–10:00 AM",
+            location: "Building 92 Café",
+            organizer: "Olivia Martinez",
+            detail: "A quick orientation and Q&A before the rest of your first-day meetings."
+        ),
         persona: .monaKane
+    ),
+    InboxThread(
+        section: .today,
+        sender: "Priya Shah",
+        recipients: "To you, +4",
+        subject: "Cancelled: Research review",
+        preview: "This meeting has been cancelled. Remove it from your calendar if it still appears.",
+        body: "The research review is cancelled while we recruit a replacement participant panel.",
+        timeStamp: "7:42 AM",
+        isUnread: true,
+        isExternalSender: false,
+        hasAttachment: false,
+        isFlagged: true,
+        isPinned: true,
+        meeting: MeetingScenario(
+            kind: .cancelled,
+            title: "Research review",
+            dateLine: "Wednesday, July 30 · 2:00–3:00 PM",
+            location: "Studio C",
+            organizer: "Priya Shah",
+            detail: "Cancelled by the organizer."
+        )
+    ),
+    InboxThread(
+        section: .yesterday,
+        sender: "Alex Morgan",
+        recipients: "To you",
+        subject: "New time proposed: Launch review",
+        preview: "Alex proposed Thursday at 3:30 PM for the launch review.",
+        body: "The original slot conflicts with the engineering readiness review. Please review the proposed time.",
+        timeStamp: "Yesterday",
+        isUnread: false,
+        isExternalSender: false,
+        hasAttachment: false,
+        isFlagged: false,
+        meeting: MeetingScenario(
+            kind: .proposedTime,
+            title: "Launch review",
+            dateLine: "Proposed: Thursday, July 31 · 3:30–4:30 PM",
+            location: "Teams meeting",
+            organizer: "Alex Morgan",
+            detail: "Review the proposed time before responding.",
+            previousDetail: "Original: Thursday, July 31 · 1:00–2:00 PM"
+        )
+    ),
+    InboxThread(
+        section: .yesterday,
+        sender: "Maya Thompson",
+        recipients: "To you, Design Leadership",
+        subject: "Portfolio review",
+        preview: "You have another event during this meeting.",
+        body: "We will review the Q3 portfolio, staffing risks, and the projects that need leadership decisions.",
+        timeStamp: "Yesterday",
+        isUnread: true,
+        isExternalSender: false,
+        hasAttachment: false,
+        isFlagged: false,
+        meeting: MeetingScenario(
+            kind: .conflict,
+            title: "Portfolio review",
+            dateLine: "Friday, August 1 · 11:00 AM–12:00 PM",
+            location: "Conference room 4/2210",
+            organizer: "Maya Thompson",
+            detail: "Conflicts with Product Council."
+        )
+    ),
+    InboxThread(
+        section: .thisWeek,
+        sender: "Leadership Operations",
+        recipients: "To you",
+        subject: "Weekly leadership staff",
+        preview: "This recurring series has been added to your calendar.",
+        body: "Weekly leadership staff covers business health, people topics, and cross-team decisions.",
+        timeStamp: "Sat",
+        isUnread: false,
+        isExternalSender: false,
+        hasAttachment: false,
+        isFlagged: false,
+        isPinned: true,
+        meeting: MeetingScenario(
+            kind: .recurring,
+            title: "Leadership staff",
+            dateLine: "Every Monday · 9:00–10:00 AM",
+            location: "Teams meeting",
+            organizer: "Leadership Operations",
+            detail: "Occurs weekly until December 14.",
+            response: .accepted
+        )
+    ),
+    InboxThread(
+        section: .thisWeek,
+        sender: "Recruiting",
+        recipients: "To you",
+        subject: "Interview loop for Sam Lee",
+        preview: "You received this invitation for Jordan Patel.",
+        body: "Please cover the product thinking interview and send feedback before the debrief.",
+        timeStamp: "Fri",
+        isUnread: false,
+        isExternalSender: false,
+        hasAttachment: true,
+        isFlagged: false,
+        attachments: [
+            MessageAttachment(name: "Sam Lee resume.pdf", detail: "PDF · 340 KB"),
+        ],
+        meeting: MeetingScenario(
+            kind: .delegated,
+            title: "Interview loop: Sam Lee",
+            dateLine: "Tuesday, August 4 · 1:00–2:00 PM",
+            location: "Teams meeting",
+            organizer: "Recruiting",
+            detail: "Product thinking interview.",
+            delegateOwner: "Jordan Patel"
+        )
+    ),
+    InboxThread(
+        section: .thisWeek,
+        sender: "Nina Kapoor",
+        recipients: "To you, Offsite planning",
+        subject: "Choose a time for the team offsite",
+        preview: "Three poll times are available.",
+        body: "Vote for every time you can attend. We will close the poll on Friday.",
+        timeStamp: "Thu",
+        isUnread: false,
+        isExternalSender: false,
+        hasAttachment: false,
+        isFlagged: false,
+        meeting: MeetingScenario(
+            kind: .poll,
+            title: "Team offsite planning",
+            dateLine: "September 2026",
+            location: "Redmond campus",
+            organizer: "Nina Kapoor",
+            detail: "Select all times that work.",
+            pollOptions: [
+                "Sep 9 · 9:00 AM–1:00 PM",
+                "Sep 10 · 12:00–4:00 PM",
+                "Sep 11 · 9:00 AM–1:00 PM",
+            ]
+        )
+    ),
+    InboxThread(
+        section: .thisWeek,
+        sender: "Contoso Design",
+        recipients: "To you",
+        subject: "Invitation to share the Design Events calendar",
+        preview: "Contoso Design invited you to view a shared calendar.",
+        body: "Accept this invitation to add the Design Events calendar to Outlook.",
+        timeStamp: "Wed",
+        isUnread: false,
+        isExternalSender: true,
+        hasAttachment: false,
+        isFlagged: false,
+        meeting: MeetingScenario(
+            kind: .sharedCalendar,
+            title: "Design Events",
+            dateLine: "Shared calendar",
+            location: nil,
+            organizer: "Contoso Design",
+            detail: "View design reviews, critiques, and community events."
+        )
+    ),
+    InboxThread(
+        section: .thisWeek,
+        sender: "Alaska Airlines",
+        recipients: "To you",
+        subject: "Your Seattle flight reservation",
+        preview: "Your reservation is confirmed. View the latest itinerary and flight details.",
+        body: "Flight 1468 from SEA to SFO is confirmed.",
+        timeStamp: "Tue",
+        isUnread: false,
+        isExternalSender: true,
+        hasAttachment: false,
+        isFlagged: false,
+        txp: TxpScenario(
+            kind: .flightReservation,
+            title: "Flight Reservation",
+            detail: nil,
+            actionTitle: "View"
+        )
+    ),
+    InboxThread(
+        section: .thisWeek,
+        sender: "Delta",
+        recipients: "To you",
+        subject: "Flight itinerary updated",
+        preview: "Your departure time is Saturday, December 3 at 3:00 PM.",
+        body: "Your updated itinerary is ready to view.",
+        timeStamp: "Tue",
+        isUnread: false,
+        isExternalSender: true,
+        hasAttachment: false,
+        isFlagged: false,
+        txp: TxpScenario(
+            kind: .flightReservation,
+            title: "Sat, 3 Dec. at 3:00pm",
+            detail: nil,
+            actionTitle: "View"
+        )
+    ),
+    InboxThread(
+        section: .thisWeek,
+        sender: "Microsoft Store",
+        recipients: "To you",
+        subject: "Your order has shipped",
+        preview: "The parcel is on its way. View the order details.",
+        body: "Your order has left the fulfillment center.",
+        timeStamp: "Tue",
+        isUnread: false,
+        isExternalSender: false,
+        hasAttachment: false,
+        isFlagged: false,
+        txp: TxpScenario(
+            kind: .parcelDelivery,
+            title: "Parcel Delivery",
+            detail: nil,
+            actionTitle: "View"
+        )
+    ),
+    InboxThread(
+        section: .thisWeek,
+        sender: "UPS",
+        recipients: "To you",
+        subject: "Delivery expected Thursday",
+        preview: "Your parcel is expected on Thursday, October 27.",
+        body: "Track the parcel for the latest delivery status.",
+        timeStamp: "Tue",
+        isUnread: false,
+        isExternalSender: true,
+        hasAttachment: false,
+        isFlagged: false,
+        txp: TxpScenario(
+            kind: .parcelDelivery,
+            title: "Expected: Thu, 27 Oct.",
+            detail: nil,
+            actionTitle: "Track"
+        )
     ),
 ]

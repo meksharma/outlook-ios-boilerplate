@@ -26,6 +26,7 @@
 import FluentUI
 import OutlookBackdrop
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @State private var showingSideDrawer = false
@@ -40,6 +41,14 @@ struct ContentView: View {
     /// Production vs Beta build variant (set in the Designer Tools sheet).
     /// Drives which Copilot chat sheet renders.
     @AppStorage("appVariant") private var appVariant: String = "production"
+
+    // MARK: - Bug reporting
+
+    /// Drives the shared bug-report form. Triggered by shake gesture or the
+    /// Designer Tools "Report a Bug" row (via `.requestBugReport`). Uses an
+    /// item-based sheet so the form only presents once its context + screenshot
+    /// exist — avoids the blank-sheet race an optional `isPresented` sheet hits.
+    @State private var bugReportRequest: BugReportRequest?
 
     enum Tab: Int, Hashable { case mail = 0, calendar, apps }
 
@@ -93,6 +102,35 @@ struct ContentView: View {
         .animation(MotionComponent.copilotSheet.enterAnimation, value: showingCopilotSheet)
         .fluentTheme(FluentTheme.shared)
         .environment(\.colorScheme, appColorScheme == "dark" ? .dark : .light)
+        .onShake { triggerBugReport() }
+        .onReceive(NotificationCenter.default.publisher(for: .requestBugReport)) { _ in
+            triggerBugReport()
+        }
+        .sheet(item: $bugReportRequest) { request in
+            BugReportForm(context: request.context, screenshot: request.screenshot)
+        }
+    }
+
+    /// Captures the current screen + context, then presents the report form.
+    /// Screenshot must be grabbed BEFORE the sheet animates up.
+    private func triggerBugReport() {
+        guard bugReportRequest == nil else { return }
+        bugReportRequest = BugReportRequest(
+            context: BugReportContext.capture(screen: currentScreenName),
+            screenshot: ScreenshotCapture.captureKeyWindow()
+        )
+    }
+
+    /// Human-readable name of the surface currently in front, for the report.
+    private var currentScreenName: String {
+        if showingComposeSheet { return "Compose" }
+        if showingCopilotSheet { return appVariant == "beta" ? "Copilot (Beta)" : "Copilot" }
+        if showingSideDrawer { return "Side drawer" }
+        switch selectedTab {
+        case .mail: return readingPanePresented ? "Reading pane" : "Inbox"
+        case .calendar: return "Calendar"
+        case .apps: return "Apps"
+        }
     }
 
     @ViewBuilder
