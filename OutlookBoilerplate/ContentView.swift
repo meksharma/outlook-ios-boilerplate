@@ -70,7 +70,9 @@ struct ContentView: View {
                             BottomNav(
                                 selectedTab: $selectedTab,
                                 showCompose: selectedTab == .mail && !readingPanePresented,
+                                showCalendarAdd: selectedTab == .calendar,
                                 onComposeTap: { showingComposeSheet = true },
+                                onCalendarAddTap: {},
                                 onCopilotTap: { showingCopilotSheet = true }
                             )
                             // Reading-pane DAB owns the 12pt gap above. When no
@@ -144,7 +146,7 @@ struct ContentView: View {
                 readingPanePresented: $readingPanePresented
             )
         case .calendar:
-            CalendarPlaceholder()
+            CalendarScreen()
         case .apps:
             AppsPlaceholder()
         }
@@ -156,7 +158,9 @@ struct ContentView: View {
 struct BottomNav: View {
     @Binding var selectedTab: ContentView.Tab
     let showCompose: Bool
+    let showCalendarAdd: Bool
     let onComposeTap: () -> Void
+    let onCalendarAddTap: () -> Void
     let onCopilotTap: () -> Void
 
     var body: some View {
@@ -186,11 +190,19 @@ struct BottomNav: View {
                         .scale(scale: 0, anchor: .bottom)
                         .combined(with: .opacity)
                     )
+            } else if showCalendarAdd {
+                CalendarAddPillFAB(action: onCalendarAddTap)
+                    .padding(.trailing, 16)
+                    .offset(y: -68)
+                    .transition(
+                        .scale(scale: 0, anchor: .bottom)
+                        .combined(with: .opacity)
+                    )
             }
         }
         .animation(
             MotionComponent.composePillFAB.enterAnimation,
-            value: showCompose
+            value: showCompose || showCalendarAdd
         )
     }
 }
@@ -317,25 +329,26 @@ struct ComposePillFAB: View {
     }
 }
 
-// MARK: - Placeholders
-
-private struct CalendarPlaceholder: View {
-    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
+struct CalendarAddPillFAB: View {
+    let action: () -> Void
 
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "calendar")
-                .font(.system(size: 48))
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
-            Text("Calendar")
-                .font(.title2.weight(.semibold))
-            Text("Visual-only in Phase 1.")
-                .font(.callout)
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
+        Button(action: action) {
+            Image(.calendarAdd24Regular)
+                .renderingMode(.template)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 28, height: 28)
+                .foregroundStyle(Color.odsNeutralForeground1)
+                .padding(15)
+                .liquidGlassEffect(interactive: true)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .buttonStyle(.plain)
+        .accessibilityLabel("New event")
     }
 }
+
+// MARK: - Placeholders
 
 private struct AppsPlaceholder: View {
     @Environment(\.fluentTheme) private var fluentTheme: FluentTheme

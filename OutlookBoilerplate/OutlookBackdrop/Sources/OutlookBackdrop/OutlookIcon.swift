@@ -63,6 +63,7 @@ public enum OutlookIcon: String, CaseIterable, Sendable {
     case textEditStyle24Regular    = "ic_fluent_text_edit_style_24_regular"
     case calendarClock24Regular    = "ic_fluent_calendar_clock_24_regular"
     case calendarEmpty24Regular    = "ic_fluent_calendar_empty_24_regular"
+    case calendarAdd24Regular      = "ic_fluent_calendar_add_24_regular"
     case penSparkle24Regular       = "ic_fluent_pen_sparkle_24_regular"
     case chatSparkle24Regular      = "ic_fluent_chat_sparkle_24_regular"
     case textBulletListSquareSparkle24Regular = "ic_fluent_text_bullet_list_square_sparkle_24_regular"
