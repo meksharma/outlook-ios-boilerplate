@@ -193,6 +193,12 @@ struct InboxRow: View {
         if thread.hasAttachment {
             statusIcon(.attach24Regular, color: .odsNeutralForeground2)
         }
+        if thread.hasLinkAttachment {
+            Image(systemName: "link")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.odsNeutralForeground2)
+                .frame(width: 20, height: 20)
+        }
         if thread.meeting != nil {
             statusIcon(.calendarEmpty24Regular, color: .odsBrandForeground1)
         }
@@ -209,11 +215,20 @@ struct InboxRow: View {
                 .frame(width: 20, height: 20)
         }
         if thread.conversationCount > 1 {
-            Text("\(thread.conversationCount)")
+            Text("\(thread.unreadCount > 0 ? thread.unreadCount : thread.conversationCount)")
                 .font(.odsCaption1)
-                .foregroundStyle(Color.odsNeutralForeground2)
+                .foregroundStyle(
+                    thread.unreadCount > 0
+                        ? Color.odsBrandForeground1
+                        : Color.odsNeutralForeground2
+                )
                 .frame(minWidth: 20, minHeight: 24)
-                .background(Color.odsNeutralBackground4, in: RoundedRectangle(cornerRadius: 4))
+                .background(
+                    thread.unreadCount > 0
+                        ? Color.odsBrandBackgroundTint2
+                        : Color.odsNeutralBackground4,
+                    in: RoundedRectangle(cornerRadius: 4)
+                )
         }
     }
 
@@ -229,24 +244,62 @@ struct InboxRow: View {
     /// Row 3 — body preview. Up to 2 lines, ellipsis. Full width — nothing
     /// trailing it. Figma `pt-px` ≈ 1pt top padding.
     private var row3: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 4) {
-            if let category = thread.categories.first {
-                Text(category)
-                    .font(.odsCaption1)
-                    .foregroundStyle(Color.odsStatusWarningForeground1)
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
-                    .background(Color.odsStatusWarningBackground1, in: RoundedRectangle(cornerRadius: 3))
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                if let lastVerb = thread.lastVerb {
+                    lastVerbIndicator(lastVerb)
+                }
+
+                if let category = thread.categories.first {
+                    Text(category)
+                        .font(.odsCaption1)
+                        .foregroundStyle(Color.odsStatusWarningForeground1)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.odsStatusWarningBackground1, in: RoundedRectangle(cornerRadius: 3))
+                }
+
+                Text(thread.preview)
+                    .font(.odsBody2)
+                    .tracking(-0.24)
+                    .foregroundStyle(Color.odsNeutralForeground2)
+                    .lineLimit(thread.meeting == nil && thread.txp == nil ? 2 : 1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            Text(thread.preview)
-                .font(.odsBody2)
-                .tracking(-0.24)
-                .foregroundStyle(Color.odsNeutralForeground2)
-                .lineLimit(thread.meeting == nil && thread.txp == nil ? 2 : 1)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            if thread.reactionsCount > 0 {
+                HStack(spacing: 1) {
+                    Text(thread.topReactions.joined())
+                        .font(.system(size: 14))
+
+                    Text("\(thread.reactionsCount)")
+                        .font(.odsCaption1)
+                        .foregroundStyle(Color.odsNeutralForeground2)
+                }
+                .fixedSize()
+            }
         }
         .padding(.top, 1)
+    }
+
+    private func lastVerbIndicator(_ verb: MessageLastVerb) -> some View {
+        Group {
+            switch verb {
+            case .reply, .replyAll:
+                Image(.arrowReply24Regular)
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+            case .forward:
+                Image(systemName: "arrowshape.turn.up.right")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+        }
+        .foregroundStyle(Color.odsBrandForeground1)
+        .frame(width: 16, height: 16)
+        .overlay {
+            Circle().stroke(Color.odsBrandForeground1, lineWidth: 1)
+        }
     }
 
     @ViewBuilder

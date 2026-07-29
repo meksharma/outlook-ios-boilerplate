@@ -366,7 +366,7 @@ private struct AppsPlaceholder: View {
                 .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             Text("Apps")
                 .font(.title2.weight(.semibold))
-            Text("Visual-only in Phase 1.")
+            Text("In progress")
                 .font(.callout)
                 .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
         }
