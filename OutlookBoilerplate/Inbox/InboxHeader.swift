@@ -277,14 +277,13 @@ struct InboxHeader: View {
 struct DesignerToolsSheet: View {
     @Binding var appColorScheme: String
 
-    /// Demo (mock) vs Real (Graph) data source. Persisted + auto-synced via
-    /// the AppStorage key. Holds state only for now — the Graph backend that
-    /// would consume `"real"` doesn't exist yet (see Real-Data Mode analysis).
-    @AppStorage("dataMode") private var dataMode: String = "demo"
-
     /// Production vs Beta build variant. Persisted + auto-synced. No consumer
     /// yet — the per-variant tab content tree is still to be wired.
     @AppStorage("appVariant") private var appVariant: String = "production"
+
+    /// Routes Copilot prompts through the local Work IQ bridge when enabled.
+    /// Off by default so the boilerplate retains its clone-and-run behavior.
+    @AppStorage("workIQEnabled") private var workIQEnabled: Bool = false
 
     private var isDarkMode: Bool { appColorScheme == "dark" }
 
@@ -294,11 +293,6 @@ struct DesignerToolsSheet: View {
                 // Environment switches use native segmented controls: binary,
                 // mutually-exclusive, *named* choices read clearest side-by-side.
                 // System control auto-adapts to the sheet's forced light/dark.
-                segmentedSection(title: "Data Source", selection: $dataMode) {
-                    Text("Demo").tag("demo")
-                    Text("Real").tag("real")
-                }
-
                 segmentedSection(title: "App Variant", selection: $appVariant) {
                     Text("Production").tag("production")
                     Text("Beta").tag("beta")
@@ -317,6 +311,15 @@ struct DesignerToolsSheet: View {
                             isActive: isDarkMode
                         ) {
                             appColorScheme = isDarkMode ? "light" : "dark"
+                        }
+
+                        ControlPill(
+                            icon: "sparkles",
+                            title: "Work IQ",
+                            description: workIQEnabled ? "Live inbox + Copilot context" : "Off",
+                            isActive: workIQEnabled
+                        ) {
+                            workIQEnabled.toggle()
                         }
 
                         // More tools land here as we add them — randomize

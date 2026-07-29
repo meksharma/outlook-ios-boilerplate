@@ -17,7 +17,7 @@ enum InboxSection: String, CaseIterable, Hashable {
 }
 
 struct InboxThread: Identifiable, Hashable {
-    let id = UUID()
+    let id: String
 
     /// Which date-grouping section the thread sits in. Mirrors production's
     /// `MessageListSectionHeaderInfo.title` derivation from message date.
@@ -60,10 +60,44 @@ struct InboxThread: Identifiable, Hashable {
     /// Whether the user flagged the thread. Maps to `SnippetCellModel.flagged`.
     let isFlagged: Bool
 
+    var profilePhotoURL: URL? = nil
+
     /// Optional persona avatar. When set, the row renders the persona's photo;
     /// when nil (e.g. organizational senders like "Microsoft Learn"), the row
     /// falls back to a neutral initials avatar.
     var persona: Persona? = nil
+
+    init(
+        id: String = UUID().uuidString,
+        section: InboxSection,
+        sender: String,
+        recipients: String,
+        subject: String,
+        preview: String,
+        body: String,
+        timeStamp: String,
+        isUnread: Bool,
+        isExternalSender: Bool,
+        hasAttachment: Bool,
+        isFlagged: Bool,
+        profilePhotoURL: URL? = nil,
+        persona: Persona? = nil
+    ) {
+        self.id = id
+        self.section = section
+        self.sender = sender
+        self.recipients = recipients
+        self.subject = subject
+        self.preview = preview
+        self.body = body
+        self.timeStamp = timeStamp
+        self.isUnread = isUnread
+        self.isExternalSender = isExternalSender
+        self.hasAttachment = hasAttachment
+        self.isFlagged = isFlagged
+        self.profilePhotoURL = profilePhotoURL
+        self.persona = persona
+    }
 }
 
 let sampleThreads: [InboxThread] = [

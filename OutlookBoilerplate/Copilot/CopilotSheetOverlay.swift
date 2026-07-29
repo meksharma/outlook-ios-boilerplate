@@ -35,6 +35,8 @@ struct CopilotSheetOverlay: View {
     @Binding var isShowing: Bool
 
     @State private var promptText: String = ""
+    @State private var workIQResponse: WorkIQResponseState = .idle
+    @AppStorage("workIQEnabled") private var workIQEnabled: Bool = false
 
     private let suggestions: [Suggestion] = [
         Suggestion(title: "Voice catch-up", iconSystemName: "waveform"),
@@ -42,9 +44,12 @@ struct CopilotSheetOverlay: View {
         Suggestion(title: "What needs my reply?", iconSystemName: nil),
     ]
 
-    private let sheetHeight: CGFloat = 168
     private let cornerRadius: CGFloat = 24
     private let animationDuration: Double = 0.25
+
+    private var sheetHeight: CGFloat {
+        workIQResponse == .idle ? 168 : 380
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -67,6 +72,7 @@ struct CopilotSheetOverlay: View {
             VStack(spacing: .odsSize120) {
                 suggestionChipsRow
                 inputBar
+                WorkIQResponseView(state: workIQResponse)
             }
             .padding(.horizontal, .odsSpacingHorizontalL)
             .padding(.bottom, .odsSize120)
@@ -94,7 +100,9 @@ struct CopilotSheetOverlay: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: .odsSpacingHorizontalS) {
                 ForEach(suggestions) { suggestion in
-                    SuggestionChip(suggestion: suggestion)
+                    SuggestionChip(suggestion: suggestion) {
+                        submitToWorkIQ(suggestion.title)
+                    }
                 }
             }
         }
@@ -113,7 +121,8 @@ struct CopilotSheetOverlay: View {
                 FocusableTextField(
                     text: $promptText,
                     placeholder: "Ask Copilot",
-                    shouldFocus: $isShowing
+                    shouldFocus: $isShowing,
+                    onSubmit: submitToWorkIQ
                 )
                 .frame(height: .odsSize240)
             }
@@ -139,6 +148,23 @@ struct CopilotSheetOverlay: View {
         }
         .buttonStyle(.plain)
     }
+
+    private func submitToWorkIQ(_ question: String) {
+        let trimmedQuestion = question.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard workIQEnabled, !trimmedQuestion.isEmpty else { return }
+
+        workIQResponse = .loading
+        Task {
+            do {
+                let answer = try await WorkIQClient().ask(trimmedQuestion)
+                workIQResponse = .answer(answer)
+            } catch {
+                workIQResponse = .failure(
+                    "Work IQ is unavailable. Start `node Tools/workiq_bridge.js` on your Mac, then try again.\n\n\(error.localizedDescription)"
+                )
+            }
+        }
+    }
 }
 
 private struct Suggestion: Identifiable, Hashable {
@@ -149,9 +175,10 @@ private struct Suggestion: Identifiable, Hashable {
 
 private struct SuggestionChip: View {
     let suggestion: Suggestion
+    let action: () -> Void
 
     var body: some View {
-        Button(action: {}) {
+        Button(action: action) {
             HStack(spacing: .odsSpacingHorizontalS) {
                 if let icon = suggestion.iconSystemName {
                     Image(systemName: icon)
@@ -187,6 +214,7 @@ private struct FocusableTextField: UIViewRepresentable {
     @Binding var text: String
     let placeholder: String
     @Binding var shouldFocus: Bool
+    let onSubmit: (String) -> Void
 
     func makeUIView(context: Context) -> UITextField {
         let field = UITextField()
@@ -199,6 +227,7 @@ private struct FocusableTextField: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UITextField, context: Context) {
+        context.coordinator.onSubmit = onSubmit
         if uiView.text != text {
             uiView.text = text
         }
@@ -210,20 +239,28 @@ private struct FocusableTextField: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text)
+        Coordinator(text: $text, onSubmit: onSubmit)
     }
 
     final class Coordinator: NSObject, UITextFieldDelegate {
         @Binding var text: String
+        var onSubmit: (String) -> Void
 
-        init(text: Binding<String>) {
+        init(text: Binding<String>, onSubmit: @escaping (String) -> Void) {
             self._text = text
+            self.onSubmit = onSubmit
         }
 
         func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
             if let current = textField.text, let textRange = Range(range, in: current) {
                 text = current.replacingCharacters(in: textRange, with: string)
             }
+            return true
+        }
+
+        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            onSubmit(textField.text ?? "")
+            textField.resignFirstResponder()
             return true
         }
     }

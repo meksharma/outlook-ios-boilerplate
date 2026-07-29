@@ -49,6 +49,22 @@ Hit **⌘R**. The iOS Simulator opens with a working Outlook-shaped app — Inbo
 
 > **Simulator quirk to know:** if the soft keyboard doesn't appear when you tap a text field, the simulator has a hardware-keyboard mode that's hiding it. Fix: in the simulator menu bar, **I/O → Keyboard → uncheck "Connect Hardware Keyboard"** (or press **⌘⇧K**). On real iPhones this isn't an issue.
 
+### Optional: connect Copilot to Work IQ
+
+The Work IQ prototype path is off by default and currently supports the iOS Simulator only. A small local adapter connects the app to Microsoft's hosted Work IQ MCP service. Authentication tokens stay in `~/.outlook-ios-boilerplate/`, outside the repo.
+
+```bash
+cd Tools
+npm install
+npm start
+```
+
+The first run opens Microsoft sign-in in your browser. Keep the bridge terminal running. In the app, open **Designer Tools** and turn on **Work IQ**. The Inbox loads your recent messages and Copilot submits prompts against your Microsoft 365 context. Turning Work IQ off restores the fixture inbox and inert Copilot behavior.
+
+The bridge maintains one connection to the hosted MCP service instead of launching `npx @microsoft/workiq` for every request. The Inbox uses Work IQ's structured mail retrieval rather than an AI-generated response. Forty messages are cached in the app and for five minutes in the bridge, so subsequent launches render the previous result immediately and refresh in the background.
+
+Live rows include sender, recipients, read state, attachment state, follow-up flags, importance, and Focused/Other classification. Sender photos load lazily through Microsoft Graph using the same local Azure CLI session and fall back to initials when no organizational photo exists.
+
 ---
 
 ## Vibe-code a prototype

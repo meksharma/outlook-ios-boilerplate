@@ -27,13 +27,18 @@ struct InboxView: View {
     /// Drives `InboxHeader`'s collapse animation. Updated by the thread list's
     /// `onScrollGeometryChange`. 0 = at top, grows positively as user scrolls down.
     @State private var scrollOffset: CGFloat = 0
+    @State private var liveThreads: [InboxThread] = []
+    @State private var isLoadingWorkIQ = false
+    @State private var workIQError: String?
+    @State private var inboxRefreshTask: Task<Void, Never>?
+    @AppStorage("workIQEnabled") private var workIQEnabled: Bool = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             inboxContent
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(for: InboxThread.self) { thread in
-                    ReadingPaneView(thread: thread)
+                    ReadingPaneView(thread: thread, usesWorkIQ: workIQEnabled)
                         .onAppear { readingPanePresented = true }
                         .onDisappear { readingPanePresented = false }
                 }
@@ -49,6 +54,7 @@ struct InboxView: View {
                 onAvatarTap: { showingSideDrawer = true },
                 scrollOffset: scrollOffset
             )
+            workIQStatus
             threadList
                 .onScrollGeometryChange(for: CGFloat.self) { geometry in
                     geometry.contentOffset.y
@@ -57,12 +63,42 @@ struct InboxView: View {
                 }
         }
         .background(Color.odsNeutralBackground1)
+        .task(id: workIQEnabled) {
+            inboxRefreshTask?.cancel()
+            inboxRefreshTask = Task {
+                await refreshWorkIQInbox()
+            }
+            await inboxRefreshTask?.value
+        }
+    }
+
+    @ViewBuilder
+    private var workIQStatus: some View {
+        if workIQEnabled && isLoadingWorkIQ {
+            HStack(spacing: .odsSpacingHorizontalS) {
+                ProgressView()
+                Text("Loading your Work IQ inbox...")
+                    .font(.odsBody2)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, .odsSpacingHorizontalL)
+            .padding(.vertical, .odsSpacingVerticalS)
+            .background(Color.odsNeutralBackground2)
+        } else if workIQEnabled, let workIQError {
+            Text(workIQError)
+                .font(.odsBody2)
+                .foregroundStyle(Color.odsStatusDangerForeground1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, .odsSpacingHorizontalL)
+                .padding(.vertical, .odsSpacingVerticalS)
+                .background(Color.odsStatusDangerBackground1)
+        }
     }
 
     private var threadList: some View {
         FluentList {
             ForEach(InboxSection.allCases, id: \.self) { section in
-                let threads = sampleThreads.filter { $0.section == section }
+                let threads = displayedThreads.filter { $0.section == section }
                 if !threads.isEmpty {
                     // `Section { ... }` without a `header:` parameter is just a logical
                     // grouping — no sticky element. The label row below scrolls naturally
@@ -105,6 +141,42 @@ struct InboxView: View {
             }
         }
         .fluentListStyle(.plain)
+    }
+
+    private var displayedThreads: [InboxThread] {
+        workIQEnabled ? liveThreads : sampleThreads
+    }
+
+    @MainActor
+    private func refreshWorkIQInbox() async {
+        guard workIQEnabled else {
+            inboxRefreshTask?.cancel()
+            liveThreads = []
+            workIQError = nil
+            isLoadingWorkIQ = false
+            return
+        }
+
+        let client = WorkIQClient()
+        let cachedThreads = client.cachedInbox()
+        if !cachedThreads.isEmpty {
+            liveThreads = cachedThreads
+        }
+        isLoadingWorkIQ = cachedThreads.isEmpty
+        workIQError = nil
+        do {
+            let refreshedThreads = try await client.recentInbox()
+            try Task.checkCancellation()
+            liveThreads = refreshedThreads
+        } catch is CancellationError {
+            return
+        } catch {
+            if cachedThreads.isEmpty {
+                liveThreads = []
+            }
+            workIQError = "Work IQ inbox unavailable. Start `node Tools/workiq_bridge.js`, then toggle Work IQ off and on.\n\(error.localizedDescription)"
+        }
+        isLoadingWorkIQ = false
     }
 }
 
