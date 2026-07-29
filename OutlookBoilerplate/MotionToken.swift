@@ -11,29 +11,21 @@ import SwiftUI
 // MARK: - Easing Tokens
 
 enum MotionEasing: String, CaseIterable {
+    case enter
+    case exit
+    case standard
+    case emphasized
     case linear
-    case DeccelerateMin
-    case Expressive
-    case EasyEase
-    case AccelerateMin
-    case DcelerateMax
-    case MaxEasyEase
-    case DecelerateMid
-    case AccelerateMid
-    case AccelerateMax
+    case bounce
 
     var controlPoints: (Double, Double, Double, Double) {
         switch self {
+        case .enter: return (0.0, 0.0, 0.2, 1.0)
+        case .exit: return (0.4, 0.0, 1.0, 1.0)
+        case .standard: return (0.8, 0.0, 0.2, 1.0)
+        case .emphasized: return (0.05, 0.7, 0.1, 1.0)
         case .linear: return (0.0, 0.0, 1.0, 1.0)
-        case .DeccelerateMin: return (0.33, 0, 0.1, 1)
-        case .Expressive: return (0.29, 1.58, 0.4, 1)
-        case .EasyEase: return (0.33, 0, 0.67, 1)
-        case .AccelerateMin: return (0.8, 0, 0.78, 1)
-        case .DcelerateMax: return (0.1, 0.9, 0.2, 1)
-        case .MaxEasyEase: return (0.8, 0, 0.2, 1)
-        case .DecelerateMid: return (0, 0, 0, 1)
-        case .AccelerateMid: return (1, 0, 1, 1)
-        case .AccelerateMax: return (0.9, 0.1, 1, 0.2)
+        case .bounce: return (0.34, 1.54, 0.64, 1.0)
         }
     }
 
@@ -46,7 +38,6 @@ enum MotionEasing: String, CaseIterable {
 // MARK: - Duration Tokens
 
 enum MotionDuration: String, CaseIterable {
-    case 350
     case instant
     case fast
     case normal
@@ -56,13 +47,12 @@ enum MotionDuration: String, CaseIterable {
 
     var seconds: Double {
         switch self {
-        case .350: return 0.35
         case .instant: return 0.05
         case .fast: return 0.15
-        case .normal: return 0.2
-        case .moderate: return 0.25
-        case .slow: return 0.3
-        case .gentle: return 0.4
+        case .normal: return 0.25
+        case .moderate: return 0.35
+        case .slow: return 0.5
+        case .gentle: return 0.7
         }
     }
 
@@ -91,10 +81,10 @@ enum MotionComponent: String, CaseIterable {
 
     var enterEasing: MotionEasing {
         switch self {
-        case .actionBar: return .SuperExpressive
+        case .actionBar: return .emphasized
         case .sideDrawer: return .enter
-        case .tabPill: return .SuperExpressive
-        case .tabCell: return .SuperExpressive
+        case .tabPill: return .emphasized
+        case .tabCell: return .emphasized
         case .composePillFAB: return .bounce
         case .copilotPillFAB: return .bounce
         case .readingPane: return .enter
