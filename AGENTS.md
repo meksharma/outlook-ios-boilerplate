@@ -22,4 +22,4 @@ To pull the latest specs: `git submodule update --remote ods-kb`.
 
 ## Branch naming
 
-All branches follow `gitHubAlias/YYYY_MM_DD_branchTitle`.
+All branches follow `gitHubAlias/YYYY_MM_DD_branchTitle` (e.g. `kafrederick_microsoft/2026_05_29_button-icon-fix`).
