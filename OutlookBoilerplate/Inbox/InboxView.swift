@@ -18,6 +18,7 @@ struct InboxView: View {
     @Binding var showingSideDrawer: Bool
     @Binding var showingCopilotSheet: Bool
     @Binding var showingComposeSheet: Bool
+    @Binding var showingSearch: Bool
     /// Bubbles ReadingPaneView push/pop up to ContentView so the bottom-nav
     /// Compose FAB can hide while the user is inside a thread.
     @Binding var readingPanePresented: Bool
@@ -52,6 +53,7 @@ struct InboxView: View {
         VStack(spacing: 0) {
             InboxHeader(
                 onAvatarTap: { showingSideDrawer = true },
+                onSearchTap: { showingSearch = true },
                 scrollOffset: scrollOffset
             )
             workIQStatus
@@ -185,6 +187,7 @@ struct InboxView: View {
         showingSideDrawer: .constant(false),
         showingCopilotSheet: .constant(false),
         showingComposeSheet: .constant(false),
+        showingSearch: .constant(false),
         readingPanePresented: .constant(false)
     )
     .fluentTheme(FluentTheme.shared)

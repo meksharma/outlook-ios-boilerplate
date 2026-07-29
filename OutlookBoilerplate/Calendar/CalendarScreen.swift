@@ -3,6 +3,8 @@ import OutlookBackdrop
 import SwiftUI
 
 struct CalendarScreen: View {
+    let onSearchTap: () -> Void
+
     @State private var displayMode: CalendarDisplayMode = .threeDay
     @State private var selectedDayIndex = 0
 
@@ -10,7 +12,8 @@ struct CalendarScreen: View {
         VStack(spacing: 0) {
             CalendarHeader(
                 displayMode: $displayMode,
-                selectedDayIndex: $selectedDayIndex
+                selectedDayIndex: $selectedDayIndex,
+                onSearchTap: onSearchTap
             )
 
             switch displayMode {
@@ -31,6 +34,7 @@ struct CalendarScreen: View {
 private struct CalendarHeader: View {
     @Binding var displayMode: CalendarDisplayMode
     @Binding var selectedDayIndex: Int
+    let onSearchTap: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -58,7 +62,7 @@ private struct CalendarHeader: View {
             Spacer()
             viewModeMenu
 
-            Button(action: {}) {
+            Button(action: onSearchTap) {
                 Image(.search24Regular)
                     .renderingMode(.template)
                     .foregroundStyle(.white)

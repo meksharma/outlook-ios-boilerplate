@@ -32,6 +32,7 @@ struct ContentView: View {
     @State private var showingSideDrawer = false
     @State private var showingCopilotSheet = false
     @State private var showingComposeSheet = false
+    @State private var showingSearch = false
     @State private var selectedTab: Tab = .mail
     /// True while a ReadingPaneView is pushed onto the InboxView navigation
     /// stack. Hides the Compose FAB so the reading-pane DAB owns the bottom
@@ -111,6 +112,9 @@ struct ContentView: View {
         .sheet(item: $bugReportRequest) { request in
             BugReportForm(context: request.context, screenshot: request.screenshot)
         }
+        .fullScreenCover(isPresented: $showingSearch) {
+            SearchScreen(onDismiss: { showingSearch = false })
+        }
     }
 
     /// Captures the current screen + context, then presents the report form.
@@ -126,6 +130,7 @@ struct ContentView: View {
     /// Human-readable name of the surface currently in front, for the report.
     private var currentScreenName: String {
         if showingComposeSheet { return "Compose" }
+        if showingSearch { return "Search" }
         if showingCopilotSheet { return appVariant == "beta" ? "Copilot (Beta)" : "Copilot" }
         if showingSideDrawer { return "Side drawer" }
         switch selectedTab {
@@ -143,10 +148,11 @@ struct ContentView: View {
                 showingSideDrawer: $showingSideDrawer,
                 showingCopilotSheet: $showingCopilotSheet,
                 showingComposeSheet: $showingComposeSheet,
+                showingSearch: $showingSearch,
                 readingPanePresented: $readingPanePresented
             )
         case .calendar:
-            CalendarScreen()
+            CalendarScreen(onSearchTap: { showingSearch = true })
         case .apps:
             AppsPlaceholder()
         }

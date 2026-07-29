@@ -43,6 +43,7 @@ import SwiftUI
 
 struct InboxHeader: View {
     let onAvatarTap: () -> Void
+    let onSearchTap: () -> Void
 
     /// Scroll position from the parent list. Drives the collapse animation:
     /// 0pt = fully expanded (accessory row visible); past `collapseThreshold` =
@@ -129,7 +130,10 @@ struct InboxHeader: View {
                 }
 
                 chromeIcon(.alert24Regular, showsBadge: true)
-                chromeIcon(.search24Regular)
+                Button(action: onSearchTap) {
+                    chromeIcon(.search24Regular)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.trailing, .odsSpacingHorizontalL)
         }
@@ -263,7 +267,7 @@ struct InboxHeader: View {
 }
 
 #Preview {
-    InboxHeader(onAvatarTap: {})
+    InboxHeader(onAvatarTap: {}, onSearchTap: {})
         .fluentTheme(FluentTheme.shared)
 }
 
