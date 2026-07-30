@@ -53,13 +53,9 @@ Hit **⌘R**. The iOS Simulator opens with a working Outlook-shaped app — Inbo
 
 The Work IQ prototype path is off by default and currently supports the iOS Simulator only. A small local adapter connects the app to Microsoft's hosted Work IQ MCP service. Authentication tokens stay in `~/.outlook-ios-boilerplate/`, outside the repo.
 
-```bash
-cd Tools
-npm install
-npm start
-```
+The shared Xcode scheme starts the adapter automatically when you press **⌘R**. It installs the adapter's npm dependencies on first use, so Node.js and npm are the only prerequisites. In the app, open **Designer Tools** and turn on **Work IQ**; the first request opens Microsoft sign-in in your browser. The Inbox then loads your recent messages and Copilot submits prompts against your Microsoft 365 context. Turning Work IQ off restores the fixture inbox and inert Copilot behavior.
 
-The first run opens Microsoft sign-in in your browser. Keep the bridge terminal running. In the app, open **Designer Tools** and turn on **Work IQ**. The Inbox loads your recent messages and Copilot submits prompts against your Microsoft 365 context. Turning Work IQ off restores the fixture inbox and inert Copilot behavior.
+If automatic startup fails, inspect `~/Library/Logs/Outlook-iOS-Boilerplate/workiq-bridge.log` or run `npm start` from `Tools/` as a manual fallback.
 
 The bridge maintains one connection to the hosted MCP service instead of launching `npx @microsoft/workiq` for every request. The Inbox uses Work IQ's structured mail retrieval rather than an AI-generated response. Forty messages are cached in the app and for five minutes in the bridge, so subsequent launches render the previous result immediately and refresh in the background.
 
