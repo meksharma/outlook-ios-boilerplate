@@ -39,6 +39,7 @@ struct ComposeFAB: View {
                 .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 4)
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 
@@ -57,6 +58,7 @@ struct CopilotFAB: View {
                 .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 4)
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 

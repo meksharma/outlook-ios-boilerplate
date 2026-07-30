@@ -32,6 +32,7 @@ struct SearchScreen: View {
     @State private var category: SearchCategory = .mail
     @State private var showingFilters = false
     @FocusState private var searchFocused: Bool
+    @AppStorage("hotspotHintsEnabled") private var hotspotHintsEnabled: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -51,6 +52,7 @@ struct SearchScreen: View {
             SearchFilterSheet()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+                .hotspotHintsSurface(isEnabled: hotspotHintsEnabled)
         }
         .onAppear {
             searchFocused = true
@@ -67,6 +69,7 @@ struct SearchScreen: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Back")
+                .hotspotTarget()
 
                 TextField("Microsoft 365", text: $query)
                     .focused($searchFocused)
@@ -121,6 +124,7 @@ struct SearchScreen: View {
                             }
                         }
                     )
+                    .hotspotTarget()
                 }
             }
         }
@@ -186,6 +190,7 @@ private struct SearchMailResults: View {
 
             Button("Search filters", action: onShowFilters)
                 .foregroundStyle(Color.odsBrandForeground1)
+                .hotspotTarget()
         }
         .listStyle(.plain)
         .scrollDismissesKeyboard(.interactively)
@@ -349,6 +354,7 @@ private struct SearchFilterSheet: View {
                                         .foregroundStyle(Color.odsBrandForeground1)
                                 }
                             }
+                            .hotspotTarget()
                         }
                     }
                 }
@@ -358,6 +364,7 @@ private struct SearchFilterSheet: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Apply") { dismiss() }
+                        .hotspotTarget()
                 }
             }
         }

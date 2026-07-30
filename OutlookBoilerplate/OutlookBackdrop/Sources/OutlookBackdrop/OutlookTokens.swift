@@ -74,6 +74,7 @@ public extension Font {
 // tracking; these helpers apply font + tracking together at the Text level.
 public extension Text {
     func odsTitle1() -> Text { font(.odsTitle1).tracking(0.38) }
+    func odsHeadlineStrong() -> Text { font(.odsHeadlineStrong) }
     func odsBody1() -> Text { font(.odsBody1).tracking(-0.43) }
     func odsBody1Strong() -> Text { font(.odsBody1Strong).tracking(-0.43) }
     func odsBody2() -> Text { font(.odsBody2).tracking(-0.23) }

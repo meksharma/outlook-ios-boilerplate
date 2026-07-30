@@ -16,6 +16,12 @@ enum InboxSection: String, CaseIterable, Hashable {
     case thisWeek = "This Week"
 }
 
+enum MessageLastVerb: Hashable {
+    case reply
+    case replyAll
+    case forward
+}
+
 struct InboxThread: Identifiable, Hashable {
     let id: String
 
@@ -70,6 +76,11 @@ struct InboxThread: Identifiable, Hashable {
     var isImportant: Bool = false
     var categories: [String] = []
     var conversationCount: Int = 1
+    var unreadCount: Int = 0
+    var topReactions: [String] = []
+    var reactionsCount: Int = 0
+    var lastVerb: MessageLastVerb? = nil
+    var hasLinkAttachment: Bool = false
 
     /// Optional persona avatar. When set, the row renders the persona's photo;
     /// when nil (e.g. organizational senders like "Microsoft Learn"), the row
@@ -97,6 +108,11 @@ struct InboxThread: Identifiable, Hashable {
         isImportant: Bool = false,
         categories: [String] = [],
         conversationCount: Int = 1,
+        unreadCount: Int = 0,
+        topReactions: [String] = [],
+        reactionsCount: Int = 0,
+        lastVerb: MessageLastVerb? = nil,
+        hasLinkAttachment: Bool = false,
         persona: Persona? = nil
     ) {
         self.id = id
@@ -119,6 +135,11 @@ struct InboxThread: Identifiable, Hashable {
         self.isImportant = isImportant
         self.categories = categories
         self.conversationCount = conversationCount
+        self.unreadCount = unreadCount
+        self.topReactions = topReactions
+        self.reactionsCount = reactionsCount
+        self.lastVerb = lastVerb
+        self.hasLinkAttachment = hasLinkAttachment
         self.persona = persona
     }
 }
@@ -387,6 +408,9 @@ let sampleThreads: [InboxThread] = [
         hasAttachment: false,
         isFlagged: false,
         isPinned: true,
+        conversationCount: 4,
+        topReactions: ["❤️", "🎉"],
+        reactionsCount: 5,
         persona: .robinCounts
     ),
     InboxThread(
