@@ -68,6 +68,7 @@ private struct CalendarHeader: View {
                     .foregroundStyle(.white)
             }
             .buttonStyle(.plain)
+            .hotspotTarget()
         }
         .frame(height: 48)
         .padding(.horizontal, .odsSpacingHorizontalL)
@@ -89,6 +90,7 @@ private struct CalendarHeader: View {
             }
             .foregroundStyle(.white)
         }
+        .hotspotTarget()
     }
 
     private var dayPicker: some View {
@@ -117,6 +119,7 @@ private struct CalendarHeader: View {
                 }
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 
     private var dayLabels: [String] {

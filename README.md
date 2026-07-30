@@ -49,6 +49,10 @@ Hit **⌘R**. The iOS Simulator opens with a working Outlook-shaped app — Inbo
 
 > **Simulator quirk to know:** if the soft keyboard doesn't appear when you tap a text field, the simulator has a hardware-keyboard mode that's hiding it. Fix: in the simulator menu bar, **I/O → Keyboard → uncheck "Connect Hardware Keyboard"** (or press **⌘⇧K**). On real iPhones this isn't an issue.
 
+### Optional: reveal prototype hotspots
+
+Open **Designer Tools** and turn on **Hotspot Hints**. When a tap misses every registered prototype target, the app briefly highlights the available hit regions—matching Figma's prototype hinting behavior. The feature is off by default; new interactions opt in with `.hotspotTarget()`.
+
 ### Optional: connect Copilot to Work IQ
 
 The Work IQ prototype path is off by default and currently supports the iOS Simulator only. A small local adapter connects the app to Microsoft's hosted Work IQ MCP service. Authentication tokens stay in `~/.outlook-ios-boilerplate/`, outside the repo.

@@ -33,18 +33,29 @@ struct InboxView: View {
     @State private var workIQError: String?
     @State private var inboxRefreshTask: Task<Void, Never>?
     @AppStorage("workIQEnabled") private var workIQEnabled: Bool = false
+    @AppStorage("hotspotHintsEnabled") private var hotspotHintsEnabled: Bool = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             inboxContent
+                .hotspotRegistrationEnabled(navigationPath.isEmpty)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(for: InboxThread.self) { thread in
-                    ReadingPaneView(thread: thread, usesWorkIQ: workIQEnabled)
+                    ReadingPaneView(
+                        thread: thread,
+                        usesWorkIQ: workIQEnabled,
+                        onBack: {
+                            if !navigationPath.isEmpty {
+                                navigationPath.removeLast()
+                            }
+                        }
+                    )
                         .onAppear { readingPanePresented = true }
                         .onDisappear { readingPanePresented = false }
                 }
                 .sheet(isPresented: $showingComposeSheet) {
                     ComposeView()
+                        .hotspotHintsSurface(isEnabled: hotspotHintsEnabled)
                 }
         }
     }

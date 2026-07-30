@@ -61,6 +61,7 @@ struct ComposeView: View {
                             .renderingMode(.template)
                             .foregroundStyle(Color.odsNeutralForeground1)
                     }
+                    .hotspotTarget()
                 }
                 ToolbarItem(placement: .principal) {
                     VStack(spacing: 0) {
@@ -81,6 +82,7 @@ struct ComposeView: View {
                             .renderingMode(.template)
                             .foregroundStyle(Color.odsNeutralForeground3)
                     }
+                    .hotspotTarget()
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
