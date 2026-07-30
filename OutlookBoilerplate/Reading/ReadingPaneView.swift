@@ -22,6 +22,9 @@ import SwiftUI
 
 struct ReadingPaneView: View {
     let thread: InboxThread
+    let usesWorkIQ: Bool
+    @State private var workIQBody: WorkIQMessageBody?
+    @State private var bodyError: String?
 
     var body: some View {
         ScrollView {
@@ -34,6 +37,9 @@ struct ReadingPaneView: View {
         .background(Color.odsNeutralBackground1)
         .navigationTitle(thread.subject)
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: thread.id) {
+            await loadFullBody()
+        }
         // ReadingPaneActionBar is rendered at the ContentView level (stacked
         // above BottomNav inside the outer `safeAreaInset`) so it sits
         // visibly above the tab pill rather than being clipped beneath it
@@ -85,19 +91,40 @@ struct ReadingPaneView: View {
     }
 
     private var bodyContent: some View {
-        Text(thread.body)
-            .font(.odsHeadline)
-            .foregroundStyle(Color.odsNeutralForeground1)
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, .odsSpacingHorizontalL)
-            .padding(.vertical, .odsSpacingHorizontalL)
+        VStack(alignment: .leading, spacing: .odsSpacingVerticalS) {
+            Text(workIQBody?.displayText ?? thread.body)
+                .font(.odsHeadline)
+                .foregroundStyle(Color.odsNeutralForeground1)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let bodyError {
+                Text(bodyError)
+                    .font(.odsCaption1)
+                    .foregroundStyle(Color.odsNeutralForeground2)
+            }
+        }
+        .padding(.horizontal, .odsSpacingHorizontalL)
+        .padding(.vertical, .odsSpacingHorizontalL)
+    }
+
+    @MainActor
+    private func loadFullBody() async {
+        guard usesWorkIQ else { return }
+        do {
+            workIQBody = try await WorkIQClient().messageBody(id: thread.id)
+            bodyError = nil
+        } catch is CancellationError {
+            return
+        } catch {
+            bodyError = "Showing the message preview because the full body could not load."
+        }
     }
 }
 
 #Preview {
     NavigationStack {
-        ReadingPaneView(thread: sampleThreads[0])
+        ReadingPaneView(thread: sampleThreads[0], usesWorkIQ: false)
     }
     .fluentTheme(FluentTheme.shared)
 }

@@ -71,7 +71,19 @@ struct InboxRow: View {
     private var leftColumn: some View {
         HStack(alignment: .top, spacing: 4) {
             notificationRail
-            if let persona = thread.persona {
+            if let profilePhotoURL = thread.profilePhotoURL {
+                AsyncImage(url: profilePhotoURL) { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } else {
+                        InboxAvatar(size: 40, initials: thread.sender)
+                    }
+                }
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+            } else if let persona = thread.persona {
                 Image(persona)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
