@@ -32,6 +32,7 @@ struct ContentView: View {
     @State private var showingSideDrawer = false
     @State private var showingCopilotSheet = false
     @State private var showingComposeSheet = false
+    @State private var showingSearch = false
     @State private var selectedTab: Tab = .mail
     /// True while a ReadingPaneView is pushed onto the InboxView navigation
     /// stack. Hides the Compose FAB so the reading-pane DAB owns the bottom
@@ -41,6 +42,8 @@ struct ContentView: View {
     /// Production vs Beta build variant (set in the Designer Tools sheet).
     /// Drives which Copilot chat sheet renders.
     @AppStorage("appVariant") private var appVariant: String = "production"
+    /// Figma-style hotspot hints for prototype-only and no-op controls.
+    @AppStorage("hotspotHintsEnabled") private var hotspotHintsEnabled: Bool = false
 
     // MARK: - Bug reporting
 
@@ -88,6 +91,7 @@ struct ContentView: View {
                 // its content within the parent's safe area regardless of
                 // ignoreSafeArea on the inset's own content.
                 .ignoresSafeArea(.container, edges: .bottom)
+                .hotspotRegistrationEnabled(!showingCopilotSheet && !showingSideDrawer)
 
             SideDrawerView(isShowing: $showingSideDrawer)
                 .zIndex(1)
@@ -111,6 +115,11 @@ struct ContentView: View {
         .sheet(item: $bugReportRequest) { request in
             BugReportForm(context: request.context, screenshot: request.screenshot)
         }
+        .fullScreenCover(isPresented: $showingSearch) {
+            SearchScreen(onDismiss: { showingSearch = false })
+                .hotspotHintsSurface(isEnabled: hotspotHintsEnabled)
+        }
+        .hotspotHintsSurface(isEnabled: hotspotHintsEnabled)
     }
 
     /// Captures the current screen + context, then presents the report form.
@@ -126,6 +135,7 @@ struct ContentView: View {
     /// Human-readable name of the surface currently in front, for the report.
     private var currentScreenName: String {
         if showingComposeSheet { return "Compose" }
+        if showingSearch { return "Search" }
         if showingCopilotSheet { return appVariant == "beta" ? "Copilot (Beta)" : "Copilot" }
         if showingSideDrawer { return "Side drawer" }
         switch selectedTab {
@@ -143,10 +153,11 @@ struct ContentView: View {
                 showingSideDrawer: $showingSideDrawer,
                 showingCopilotSheet: $showingCopilotSheet,
                 showingComposeSheet: $showingComposeSheet,
+                showingSearch: $showingSearch,
                 readingPanePresented: $readingPanePresented
             )
         case .calendar:
-            CalendarScreen()
+            CalendarScreen(onSearchTap: { showingSearch = true })
         case .apps:
             AppsPlaceholder()
         }
@@ -290,6 +301,7 @@ struct TabCell: View {
             )
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 
@@ -308,6 +320,7 @@ struct CopilotPillFAB: View {
                 .liquidGlassEffect(interactive: true)
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 
@@ -326,6 +339,7 @@ struct ComposePillFAB: View {
                 .liquidGlassEffect(interactive: true)
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 
@@ -360,7 +374,7 @@ private struct AppsPlaceholder: View {
                 .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             Text("Apps")
                 .font(.title2.weight(.semibold))
-            Text("Visual-only in Phase 1.")
+            Text("In progress")
                 .font(.callout)
                 .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
         }

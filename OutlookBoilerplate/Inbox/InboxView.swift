@@ -18,6 +18,7 @@ struct InboxView: View {
     @Binding var showingSideDrawer: Bool
     @Binding var showingCopilotSheet: Bool
     @Binding var showingComposeSheet: Bool
+    @Binding var showingSearch: Bool
     /// Bubbles ReadingPaneView push/pop up to ContentView so the bottom-nav
     /// Compose FAB can hide while the user is inside a thread.
     @Binding var readingPanePresented: Bool
@@ -32,18 +33,29 @@ struct InboxView: View {
     @State private var workIQError: String?
     @State private var inboxRefreshTask: Task<Void, Never>?
     @AppStorage("workIQEnabled") private var workIQEnabled: Bool = false
+    @AppStorage("hotspotHintsEnabled") private var hotspotHintsEnabled: Bool = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             inboxContent
+                .hotspotRegistrationEnabled(navigationPath.isEmpty)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(for: InboxThread.self) { thread in
-                    ReadingPaneView(thread: thread, usesWorkIQ: workIQEnabled)
+                    ReadingPaneView(
+                        thread: thread,
+                        usesWorkIQ: workIQEnabled,
+                        onBack: {
+                            if !navigationPath.isEmpty {
+                                navigationPath.removeLast()
+                            }
+                        }
+                    )
                         .onAppear { readingPanePresented = true }
                         .onDisappear { readingPanePresented = false }
                 }
                 .sheet(isPresented: $showingComposeSheet) {
                     ComposeView()
+                        .hotspotHintsSurface(isEnabled: hotspotHintsEnabled)
                 }
         }
     }
@@ -52,6 +64,7 @@ struct InboxView: View {
         VStack(spacing: 0) {
             InboxHeader(
                 onAvatarTap: { showingSideDrawer = true },
+                onSearchTap: { showingSearch = true },
                 scrollOffset: scrollOffset
             )
             workIQStatus
@@ -185,6 +198,7 @@ struct InboxView: View {
         showingSideDrawer: .constant(false),
         showingCopilotSheet: .constant(false),
         showingComposeSheet: .constant(false),
+        showingSearch: .constant(false),
         readingPanePresented: .constant(false)
     )
     .fluentTheme(FluentTheme.shared)

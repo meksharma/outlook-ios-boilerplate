@@ -36,6 +36,7 @@ public enum OutlookIcon: String, CaseIterable, Sendable {
     case moreHorizontal24Regular   = "ic_fluent_more_horizontal_24_regular"
     case moreHorizontal16Regular   = "ic_fluent_more_horizontal_16_regular"
     case dismiss24Regular          = "ic_fluent_dismiss_24_regular"
+    case arrowLeft24Regular        = "ic_fluent_arrow_left_24_regular"
 
     // Mail row + reading pane actions
     case mail24Regular             = "ic_fluent_mail_24_regular"

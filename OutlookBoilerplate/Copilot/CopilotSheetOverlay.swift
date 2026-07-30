@@ -100,7 +100,7 @@ struct CopilotSheetOverlay: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: .odsSpacingHorizontalS) {
                 ForEach(suggestions) { suggestion in
-                    SuggestionChip(suggestion: suggestion) {
+                    SuggestionChip(suggestion: suggestion, isEnabled: workIQEnabled) {
                         submitToWorkIQ(suggestion.title)
                     }
                 }
@@ -175,6 +175,7 @@ private struct Suggestion: Identifiable, Hashable {
 
 private struct SuggestionChip: View {
     let suggestion: Suggestion
+    let isEnabled: Bool
     let action: () -> Void
 
     var body: some View {
@@ -202,6 +203,7 @@ private struct SuggestionChip: View {
             )
         }
         .buttonStyle(.plain)
+        .hotspotTarget(isEnabled: isEnabled)
     }
 }
 
