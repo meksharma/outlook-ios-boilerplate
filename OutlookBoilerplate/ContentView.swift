@@ -32,6 +32,7 @@ struct ContentView: View {
     @State private var showingSideDrawer = false
     @State private var showingCopilotSheet = false
     @State private var showingComposeSheet = false
+    @State private var showingSearch = false
     @State private var selectedTab: Tab = .mail
     /// True while a ReadingPaneView is pushed onto the InboxView navigation
     /// stack. Hides the Compose FAB so the reading-pane DAB owns the bottom
@@ -41,6 +42,8 @@ struct ContentView: View {
     /// Production vs Beta build variant (set in the Designer Tools sheet).
     /// Drives which Copilot chat sheet renders.
     @AppStorage("appVariant") private var appVariant: String = "production"
+    /// Figma-style hotspot hints for prototype-only and no-op controls.
+    @AppStorage("hotspotHintsEnabled") private var hotspotHintsEnabled: Bool = false
 
     // MARK: - Bug reporting
 
@@ -70,7 +73,9 @@ struct ContentView: View {
                             BottomNav(
                                 selectedTab: $selectedTab,
                                 showCompose: selectedTab == .mail && !readingPanePresented,
+                                showCalendarAdd: selectedTab == .calendar,
                                 onComposeTap: { showingComposeSheet = true },
+                                onCalendarAddTap: {},
                                 onCopilotTap: { showingCopilotSheet = true }
                             )
                             // Reading-pane DAB owns the 12pt gap above. When no
@@ -86,6 +91,7 @@ struct ContentView: View {
                 // its content within the parent's safe area regardless of
                 // ignoreSafeArea on the inset's own content.
                 .ignoresSafeArea(.container, edges: .bottom)
+                .hotspotRegistrationEnabled(!showingCopilotSheet && !showingSideDrawer)
 
             SideDrawerView(isShowing: $showingSideDrawer)
                 .zIndex(1)
@@ -109,6 +115,11 @@ struct ContentView: View {
         .sheet(item: $bugReportRequest) { request in
             BugReportForm(context: request.context, screenshot: request.screenshot)
         }
+        .fullScreenCover(isPresented: $showingSearch) {
+            SearchScreen(onDismiss: { showingSearch = false })
+                .hotspotHintsSurface(isEnabled: hotspotHintsEnabled)
+        }
+        .hotspotHintsSurface(isEnabled: hotspotHintsEnabled)
     }
 
     /// Captures the current screen + context, then presents the report form.
@@ -124,6 +135,7 @@ struct ContentView: View {
     /// Human-readable name of the surface currently in front, for the report.
     private var currentScreenName: String {
         if showingComposeSheet { return "Compose" }
+        if showingSearch { return "Search" }
         if showingCopilotSheet { return appVariant == "beta" ? "Copilot (Beta)" : "Copilot" }
         if showingSideDrawer { return "Side drawer" }
         switch selectedTab {
@@ -141,10 +153,11 @@ struct ContentView: View {
                 showingSideDrawer: $showingSideDrawer,
                 showingCopilotSheet: $showingCopilotSheet,
                 showingComposeSheet: $showingComposeSheet,
+                showingSearch: $showingSearch,
                 readingPanePresented: $readingPanePresented
             )
         case .calendar:
-            CalendarPlaceholder()
+            CalendarScreen(onSearchTap: { showingSearch = true })
         case .apps:
             AppsPlaceholder()
         }
@@ -156,7 +169,9 @@ struct ContentView: View {
 struct BottomNav: View {
     @Binding var selectedTab: ContentView.Tab
     let showCompose: Bool
+    let showCalendarAdd: Bool
     let onComposeTap: () -> Void
+    let onCalendarAddTap: () -> Void
     let onCopilotTap: () -> Void
 
     var body: some View {
@@ -186,11 +201,19 @@ struct BottomNav: View {
                         .scale(scale: 0, anchor: .bottom)
                         .combined(with: .opacity)
                     )
+            } else if showCalendarAdd {
+                CalendarAddPillFAB(action: onCalendarAddTap)
+                    .padding(.trailing, 16)
+                    .offset(y: -68)
+                    .transition(
+                        .scale(scale: 0, anchor: .bottom)
+                        .combined(with: .opacity)
+                    )
             }
         }
         .animation(
             MotionComponent.composePillFAB.enterAnimation,
-            value: showCompose
+            value: showCompose || showCalendarAdd
         )
     }
 }
@@ -278,6 +301,7 @@ struct TabCell: View {
             )
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 
@@ -296,6 +320,7 @@ struct CopilotPillFAB: View {
                 .liquidGlassEffect(interactive: true)
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 
@@ -314,28 +339,30 @@ struct ComposePillFAB: View {
                 .liquidGlassEffect(interactive: true)
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
+    }
+}
+
+struct CalendarAddPillFAB: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(.calendarAdd24Regular)
+                .renderingMode(.template)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 28, height: 28)
+                .foregroundStyle(Color.odsNeutralForeground1)
+                .padding(15)
+                .liquidGlassEffect(interactive: true)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("New event")
     }
 }
 
 // MARK: - Placeholders
-
-private struct CalendarPlaceholder: View {
-    @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "calendar")
-                .font(.system(size: 48))
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
-            Text("Calendar")
-                .font(.title2.weight(.semibold))
-            Text("Visual-only in Phase 1.")
-                .font(.callout)
-                .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
 
 private struct AppsPlaceholder: View {
     @Environment(\.fluentTheme) private var fluentTheme: FluentTheme
@@ -347,7 +374,7 @@ private struct AppsPlaceholder: View {
                 .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
             Text("Apps")
                 .font(.title2.weight(.semibold))
-            Text("Visual-only in Phase 1.")
+            Text("In progress")
                 .font(.callout)
                 .foregroundStyle(fluentTheme.swiftUIColor(.foreground2))
         }

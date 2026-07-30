@@ -43,6 +43,7 @@ import SwiftUI
 
 struct InboxHeader: View {
     let onAvatarTap: () -> Void
+    let onSearchTap: () -> Void
 
     /// Scroll position from the parent list. Drives the collapse animation:
     /// 0pt = fully expanded (accessory row visible); past `collapseThreshold` =
@@ -119,6 +120,7 @@ struct InboxHeader: View {
                     chromeIcon(.beakerSettings20Regular)
                 }
                 .buttonStyle(.plain)
+                .hotspotTarget()
                 .sheet(isPresented: $showingBeakerSheet) {
                     DesignerToolsSheet(appColorScheme: $appColorScheme)
                         .presentationDetents([.medium, .large])
@@ -129,7 +131,11 @@ struct InboxHeader: View {
                 }
 
                 chromeIcon(.alert24Regular, showsBadge: true)
-                chromeIcon(.search24Regular)
+                Button(action: onSearchTap) {
+                    chromeIcon(.search24Regular)
+                }
+                .buttonStyle(.plain)
+                .hotspotTarget()
             }
             .padding(.trailing, .odsSpacingHorizontalL)
         }
@@ -242,6 +248,7 @@ struct InboxHeader: View {
                 }
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 
     private var filterPill: some View {
@@ -258,12 +265,13 @@ struct InboxHeader: View {
             .padding(.vertical, .odsSpacingVerticalSNudge)
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 
 }
 
 #Preview {
-    InboxHeader(onAvatarTap: {})
+    InboxHeader(onAvatarTap: {}, onSearchTap: {})
         .fluentTheme(FluentTheme.shared)
 }
 
@@ -286,6 +294,9 @@ struct DesignerToolsSheet: View {
     /// Routes Copilot prompts through the local Work IQ bridge when enabled.
     /// Off by default so the boilerplate retains its clone-and-run behavior.
     @AppStorage("workIQEnabled") private var workIQEnabled: Bool = false
+
+    /// Flashes every interactive hit region after a tap misses all targets.
+    @AppStorage("hotspotHintsEnabled") private var hotspotHintsEnabled: Bool = false
 
     private var isDarkMode: Bool { appColorScheme == "dark" }
 
@@ -324,8 +335,14 @@ struct DesignerToolsSheet: View {
                             workIQEnabled.toggle()
                         }
 
-                        // More tools land here as we add them — randomize
-                        // content, simulated states, theme variants, etc.
+                        ControlPill(
+                            icon: "rectangle.dashed",
+                            title: "Hotspot Hints",
+                            description: hotspotHintsEnabled ? "On" : "Off",
+                            isActive: hotspotHintsEnabled
+                        ) {
+                            hotspotHintsEnabled.toggle()
+                        }
 
                         // Opens the shared bug-report form. Dismiss this sheet
                         // first, then post the request after the dismiss

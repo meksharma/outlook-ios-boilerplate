@@ -19,6 +19,9 @@ const recentMailPath =
   "/me/mailFolders/inbox/messages?$top=40" +
   "&$select=id,conversationId,subject,bodyPreview,receivedDateTime,isRead,from,toRecipients,hasAttachments,flag,importance,inferenceClassification,categories" +
   "&$orderby=receivedDateTime desc";
+const threadStatsPath =
+  "/me/mailFolders/inbox/messages?$top=250" +
+  "&$select=conversationId,isRead";
 
 let mailCache = null;
 let mailCacheTime = 0;
@@ -356,8 +359,23 @@ async function askWorkIQ(question) {
   return answer;
 }
 
-function normalizeMail(message, meeting = null, conversationCount = 1) {
+function normalizeMail(
+  message,
+  meeting = null,
+  conversationStats = { total: 1, unread: 0 },
+  reactionSummary = { topReactions: [], reactionsCount: 0 }
+) {
   const emailAddress = message.from?.emailAddress ?? {};
+  const extendedProperties = Array.isArray(message.singleValueExtendedProperties)
+    ? message.singleValueExtendedProperties
+    : [];
+  const lastVerbValue = extendedProperties.find((property) =>
+    String(property.id || "").toLowerCase().includes("0x1081")
+  )?.value;
+  const pinnedValue = extendedProperties.find((property) =>
+    String(property.id || "").toLowerCase().includes("0xfffa")
+  )?.value;
+  const attachments = Array.isArray(message.attachments) ? message.attachments : [];
   return {
     id: message.id ?? "",
     conversationId: message.conversationId ?? "",
@@ -376,7 +394,15 @@ function normalizeMail(message, meeting = null, conversationCount = 1) {
     importance: message.importance ?? "normal",
     classification: message.inferenceClassification ?? "focused",
     categories: Array.isArray(message.categories) ? message.categories : [],
-    conversationCount,
+    conversationCount: conversationStats.total,
+    unreadCount: conversationStats.unread,
+    topReactions: reactionSummary.topReactions,
+    reactionsCount: reactionSummary.reactionsCount,
+    lastVerb: lastVerbValue ?? null,
+    isPinned: String(pinnedValue || "").toLowerCase() === "true",
+    hasLinkAttachment: attachments.some((attachment) =>
+      String(attachment["@odata.type"] || "").includes("referenceAttachment")
+    ),
     meetingStartDateTime: meeting?.startDateTime?.dateTime ?? meeting?.start?.dateTime ?? null,
     meetingEndDateTime: meeting?.endDateTime?.dateTime ?? meeting?.end?.dateTime ?? null,
     meetingTimeZone: meeting?.startDateTime?.timeZone ?? meeting?.start?.timeZone ?? null,
@@ -566,6 +592,21 @@ async function fetchRecentMail(forceRefresh) {
     .then(async (result) => {
       const value = findValue(result, ["value"]);
       const rawMessages = Array.isArray(value) ? value : [];
+      let threadMessages = rawMessages;
+      try {
+        const threadResult = await callWorkIQTool(
+          "fetch",
+          { entityUrls: [threadStatsPath] },
+          60000
+        );
+        const threadValue = findValue(threadResult, ["value"]);
+        if (Array.isArray(threadValue) && threadValue.length > 0) {
+          threadMessages = threadValue;
+        }
+      } catch {
+        // The visible 40-message window remains a safe count fallback.
+      }
+
       const hasMeetingMessages = rawMessages.some((message) =>
         String(message["@odata.type"] || "").includes("eventMessage")
       );
@@ -574,12 +615,17 @@ async function fetchRecentMail(forceRefresh) {
         events = await fetchCalendarEvents();
       }
 
-      const conversationCounts = rawMessages.reduce((counts, message) => {
+      const conversationStats = threadMessages.reduce((stats, message) => {
         const id = message.conversationId;
         if (id) {
-          counts.set(id, (counts.get(id) || 0) + 1);
+          const current = stats.get(id) || { total: 0, unread: 0 };
+          current.total += 1;
+          if (!message.isRead) {
+            current.unread += 1;
+          }
+          stats.set(id, current);
         }
-        return counts;
+        return stats;
       }, new Map());
 
       const messages = rawMessages.map((message) => {
@@ -598,7 +644,7 @@ async function fetchRecentMail(forceRefresh) {
         return normalizeMail(
           message,
           event,
-          conversationCounts.get(message.conversationId) || 1
+          conversationStats.get(message.conversationId) || { total: 1, unread: message.isRead ? 0 : 1 }
         );
       });
       mailCache = messages;

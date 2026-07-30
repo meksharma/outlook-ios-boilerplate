@@ -36,6 +36,7 @@ public enum OutlookIcon: String, CaseIterable, Sendable {
     case moreHorizontal24Regular   = "ic_fluent_more_horizontal_24_regular"
     case moreHorizontal16Regular   = "ic_fluent_more_horizontal_16_regular"
     case dismiss24Regular          = "ic_fluent_dismiss_24_regular"
+    case arrowLeft24Regular        = "ic_fluent_arrow_left_24_regular"
 
     // Mail row + reading pane actions
     case mail24Regular             = "ic_fluent_mail_24_regular"
@@ -63,6 +64,7 @@ public enum OutlookIcon: String, CaseIterable, Sendable {
     case textEditStyle24Regular    = "ic_fluent_text_edit_style_24_regular"
     case calendarClock24Regular    = "ic_fluent_calendar_clock_24_regular"
     case calendarEmpty24Regular    = "ic_fluent_calendar_empty_24_regular"
+    case calendarAdd24Regular      = "ic_fluent_calendar_add_24_regular"
     case penSparkle24Regular       = "ic_fluent_pen_sparkle_24_regular"
     case chatSparkle24Regular      = "ic_fluent_chat_sparkle_24_regular"
     case textBulletListSquareSparkle24Regular = "ic_fluent_text_bullet_list_square_sparkle_24_regular"
