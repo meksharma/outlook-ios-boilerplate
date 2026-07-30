@@ -45,6 +45,7 @@ struct InboxRow: View {
             content
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 
     private var content: some View {

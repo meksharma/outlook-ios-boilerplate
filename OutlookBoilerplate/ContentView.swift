@@ -42,6 +42,8 @@ struct ContentView: View {
     /// Production vs Beta build variant (set in the Designer Tools sheet).
     /// Drives which Copilot chat sheet renders.
     @AppStorage("appVariant") private var appVariant: String = "production"
+    /// Figma-style hotspot hints for prototype-only and no-op controls.
+    @AppStorage("hotspotHintsEnabled") private var hotspotHintsEnabled: Bool = false
 
     // MARK: - Bug reporting
 
@@ -89,6 +91,7 @@ struct ContentView: View {
                 // its content within the parent's safe area regardless of
                 // ignoreSafeArea on the inset's own content.
                 .ignoresSafeArea(.container, edges: .bottom)
+                .hotspotRegistrationEnabled(!showingCopilotSheet && !showingSideDrawer)
 
             SideDrawerView(isShowing: $showingSideDrawer)
                 .zIndex(1)
@@ -114,7 +117,9 @@ struct ContentView: View {
         }
         .fullScreenCover(isPresented: $showingSearch) {
             SearchScreen(onDismiss: { showingSearch = false })
+                .hotspotHintsSurface(isEnabled: hotspotHintsEnabled)
         }
+        .hotspotHintsSurface(isEnabled: hotspotHintsEnabled)
     }
 
     /// Captures the current screen + context, then presents the report form.
@@ -296,6 +301,7 @@ struct TabCell: View {
             )
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 
@@ -314,6 +320,7 @@ struct CopilotPillFAB: View {
                 .liquidGlassEffect(interactive: true)
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 
@@ -332,6 +339,7 @@ struct ComposePillFAB: View {
                 .liquidGlassEffect(interactive: true)
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
     }
 }
 

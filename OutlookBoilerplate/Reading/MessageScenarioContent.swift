@@ -267,6 +267,7 @@ struct MeetingScenarioCard: View {
                     .background(Color.odsNeutralBackground1.opacity(0.8), in: RoundedRectangle(cornerRadius: .odsSize80))
                 }
                 .buttonStyle(.plain)
+                .hotspotTarget()
             }
         }
     }
@@ -280,6 +281,7 @@ struct MeetingScenarioCard: View {
             .font(.odsBody2Strong)
             .buttonStyle(.bordered)
             .tint(role == .destructive ? Color.odsStatusDangerForeground1 : Color.odsBrandForeground1)
+            .hotspotTarget()
     }
 
     private var responseLabel: String {
