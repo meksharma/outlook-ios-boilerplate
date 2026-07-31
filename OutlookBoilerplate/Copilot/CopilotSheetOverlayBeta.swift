@@ -138,6 +138,7 @@ struct CopilotSheetOverlayBeta: View {
                 .background(Capsule().fill(Color.odsNeutralBackground5))
         }
         .buttonStyle(.plain)
+        .hotspotTarget(isEnabled: workIQEnabled)
     }
 
     private var inputBar: some View {

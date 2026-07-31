@@ -23,6 +23,7 @@ import SwiftUI
 struct ReadingPaneView: View {
     let thread: InboxThread
     let usesWorkIQ: Bool
+    let onBack: () -> Void
     @State private var workIQBody: WorkIQMessageBody?
     @State private var bodyError: String?
 
@@ -31,12 +32,33 @@ struct ReadingPaneView: View {
             VStack(alignment: .leading, spacing: 0) {
                 senderBlock
                 Divider()
+                if let meeting = thread.meeting {
+                    MeetingScenarioCard(meeting: meeting)
+                }
                 bodyContent
+                if !thread.attachments.isEmpty {
+                    AttachmentWellView(attachments: thread.attachments)
+                }
             }
         }
         .background(Color.odsNeutralBackground1)
         .navigationTitle(thread.subject)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: onBack) {
+                    Image(.arrowLeft24Regular)
+                        .renderingMode(.template)
+                        .foregroundStyle(Color.odsNeutralForeground1)
+                        .frame(width: 44, height: 44)
+                        .glassEffectCompat(interactive: true, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .hotspotTarget()
+                .accessibilityLabel("Back")
+            }
+        }
         .task(id: thread.id) {
             await loadFullBody()
         }
@@ -90,6 +112,7 @@ struct ReadingPaneView: View {
         .padding(.vertical, .odsSpacingHorizontalL)
     }
 
+    @ViewBuilder
     private var bodyContent: some View {
         VStack(alignment: .leading, spacing: .odsSpacingVerticalS) {
             Text(workIQBody?.displayText ?? thread.body)
@@ -124,7 +147,7 @@ struct ReadingPaneView: View {
 
 #Preview {
     NavigationStack {
-        ReadingPaneView(thread: sampleThreads[0], usesWorkIQ: false)
+        ReadingPaneView(thread: sampleThreads[0], usesWorkIQ: false, onBack: {})
     }
     .fluentTheme(FluentTheme.shared)
 }

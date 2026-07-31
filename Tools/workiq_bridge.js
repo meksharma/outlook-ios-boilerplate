@@ -17,8 +17,11 @@ const mailCacheTtlMs = 5 * 60 * 1000;
 const messageBodyCache = new Map();
 const recentMailPath =
   "/me/mailFolders/inbox/messages?$top=40" +
-  "&$select=id,subject,bodyPreview,receivedDateTime,isRead,from,toRecipients,hasAttachments,flag,importance,inferenceClassification" +
+  "&$select=id,conversationId,subject,bodyPreview,receivedDateTime,isRead,from,toRecipients,hasAttachments,flag,importance,inferenceClassification,categories" +
   "&$orderby=receivedDateTime desc";
+const threadStatsPath =
+  "/me/mailFolders/inbox/messages?$top=250" +
+  "&$select=conversationId,isRead";
 
 let mailCache = null;
 let mailCacheTime = 0;
@@ -356,10 +359,27 @@ async function askWorkIQ(question) {
   return answer;
 }
 
-function normalizeMail(message) {
+function normalizeMail(
+  message,
+  meeting = null,
+  conversationStats = { total: 1, unread: 0 },
+  reactionSummary = { topReactions: [], reactionsCount: 0 }
+) {
   const emailAddress = message.from?.emailAddress ?? {};
+  const extendedProperties = Array.isArray(message.singleValueExtendedProperties)
+    ? message.singleValueExtendedProperties
+    : [];
+  const lastVerbValue = extendedProperties.find((property) =>
+    String(property.id || "").toLowerCase().includes("0x1081")
+  )?.value;
+  const pinnedValue = extendedProperties.find((property) =>
+    String(property.id || "").toLowerCase().includes("0xfffa")
+  )?.value;
+  const attachments = Array.isArray(message.attachments) ? message.attachments : [];
   return {
     id: message.id ?? "",
+    conversationId: message.conversationId ?? "",
+    messageType: message["@odata.type"] ?? "",
     senderName: emailAddress.name ?? "",
     senderEmail: emailAddress.address ?? "",
     subject: message.subject ?? "",
@@ -373,6 +393,26 @@ function normalizeMail(message) {
     isFlagged: message.flag?.flagStatus === "flagged",
     importance: message.importance ?? "normal",
     classification: message.inferenceClassification ?? "focused",
+    categories: Array.isArray(message.categories) ? message.categories : [],
+    conversationCount: conversationStats.total,
+    unreadCount: conversationStats.unread,
+    topReactions: reactionSummary.topReactions,
+    reactionsCount: reactionSummary.reactionsCount,
+    lastVerb: lastVerbValue ?? null,
+    isPinned: String(pinnedValue || "").toLowerCase() === "true",
+    hasLinkAttachment: attachments.some((attachment) =>
+      String(attachment["@odata.type"] || "").includes("referenceAttachment")
+    ),
+    meetingStartDateTime: meeting?.startDateTime?.dateTime ?? meeting?.start?.dateTime ?? null,
+    meetingEndDateTime: meeting?.endDateTime?.dateTime ?? meeting?.end?.dateTime ?? null,
+    meetingTimeZone: meeting?.startDateTime?.timeZone ?? meeting?.start?.timeZone ?? null,
+    meetingLocation: meeting?.location?.displayName ?? null,
+    meetingMessageType: meeting?.meetingMessageType ?? null,
+    meetingIsAllDay: Boolean(meeting?.isAllDay),
+    meetingShowAs: meeting?.showAs ?? null,
+    meetingResponse: meeting?.responseStatus?.response ?? null,
+    meetingIsCancelled: Boolean(meeting?.isCancelled),
+    meetingConflictCount: meeting?.conflictCount ?? 0,
   };
 }
 
@@ -382,6 +422,77 @@ function normalizeMessageBody(message) {
     content: body.content ?? "",
     contentType: String(body.contentType || "text").toLowerCase(),
   };
+}
+
+function calendarViewPath() {
+  const start = new Date();
+  start.setDate(start.getDate() - 30);
+  const end = new Date();
+  end.setDate(end.getDate() + 90);
+  return (
+    `/me/calendarView?startDateTime=${encodeURIComponent(start.toISOString())}` +
+    `&endDateTime=${encodeURIComponent(end.toISOString())}` +
+    "&$top=200" +
+    "&$select=id,subject,start,end,location,organizer,isCancelled,responseRequested,isAllDay,showAs,responseStatus,type"
+  );
+}
+
+async function fetchCalendarEvents() {
+  let result;
+  try {
+    result = await callWorkIQTool(
+      "fetch",
+      { entityUrls: [calendarViewPath()] },
+      60000
+    );
+  } catch (error) {
+    throw new Error(`Calendar enrichment failed: ${error.message}`);
+  }
+  const value = findValue(result, ["value"]);
+  return Array.isArray(value) ? value : [];
+}
+
+function normalizedSubject(value) {
+  return String(value || "")
+    .replace(/^(updated invitation|canceled|cancelled|invitation):\s*/i, "")
+    .replace(/\s*\[[^\]]+\]\s*$/i, "")
+    .trim()
+    .toLowerCase();
+}
+
+function matchingEvent(message, events) {
+  const messageSubject = normalizedSubject(message.subject);
+  return events.find((event) => {
+    const eventSubject = normalizedSubject(event.subject);
+    return (
+      eventSubject &&
+      (messageSubject === eventSubject ||
+        messageSubject.startsWith(`${eventSubject} -`) ||
+        eventSubject.startsWith(`${messageSubject} -`) ||
+        messageSubject.startsWith(`${eventSubject}:`) ||
+        eventSubject.startsWith(`${messageSubject}:`))
+    );
+  });
+}
+
+function eventConflictCount(target, events) {
+  const targetStart = Date.parse(target.start?.dateTime);
+  const targetEnd = Date.parse(target.end?.dateTime);
+  if (!Number.isFinite(targetStart) || !Number.isFinite(targetEnd)) {
+    return 0;
+  }
+  return events.filter((event) => {
+    if (
+      event.id === target.id ||
+      event.isCancelled ||
+      event.showAs === "free"
+    ) {
+      return false;
+    }
+    const start = Date.parse(event.start?.dateTime);
+    const end = Date.parse(event.end?.dateTime);
+    return Number.isFinite(start) && Number.isFinite(end) && start < targetEnd && end > targetStart;
+  }).length;
 }
 
 function runCommand(command, args) {
@@ -474,14 +585,68 @@ async function fetchRecentMail(forceRefresh) {
     return mailRequest;
   }
 
-  mailRequest = callWorkIQTool(
-    "fetch",
-    { entityUrls: [recentMailPath] },
-    60000
-  )
-    .then((result) => {
+  mailRequest = callWorkIQTool("fetch", { entityUrls: [recentMailPath] }, 60000)
+    .catch((error) => {
+      throw new Error(`Inbox fetch failed: ${error.message}`);
+    })
+    .then(async (result) => {
       const value = findValue(result, ["value"]);
-      const messages = Array.isArray(value) ? value.map(normalizeMail) : [];
+      const rawMessages = Array.isArray(value) ? value : [];
+      let threadMessages = rawMessages;
+      try {
+        const threadResult = await callWorkIQTool(
+          "fetch",
+          { entityUrls: [threadStatsPath] },
+          60000
+        );
+        const threadValue = findValue(threadResult, ["value"]);
+        if (Array.isArray(threadValue) && threadValue.length > 0) {
+          threadMessages = threadValue;
+        }
+      } catch {
+        // The visible 40-message window remains a safe count fallback.
+      }
+
+      const hasMeetingMessages = rawMessages.some((message) =>
+        String(message["@odata.type"] || "").includes("eventMessage")
+      );
+      let events = [];
+      if (hasMeetingMessages) {
+        events = await fetchCalendarEvents();
+      }
+
+      const conversationStats = threadMessages.reduce((stats, message) => {
+        const id = message.conversationId;
+        if (id) {
+          const current = stats.get(id) || { total: 0, unread: 0 };
+          current.total += 1;
+          if (!message.isRead) {
+            current.unread += 1;
+          }
+          stats.set(id, current);
+        }
+        return stats;
+      }, new Map());
+
+      const messages = rawMessages.map((message) => {
+        const graphType = String(message["@odata.type"] || "");
+        const event = graphType.includes("eventMessage")
+          ? matchingEvent(message, events)
+          : null;
+        if (event) {
+          event.meetingMessageType = graphType.includes("Cancellation")
+            ? "meetingCancelled"
+            : graphType.includes("Request")
+              ? "meetingRequest"
+              : null;
+          event.conflictCount = eventConflictCount(event, events);
+        }
+        return normalizeMail(
+          message,
+          event,
+          conversationStats.get(message.conversationId) || { total: 1, unread: message.isRead ? 0 : 1 }
+        );
+      });
       mailCache = messages;
       mailCacheTime = Date.now();
       return messages;

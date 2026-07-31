@@ -162,6 +162,26 @@ private struct WorkIQMailMessage: Codable {
     let isFlagged: Bool
     let importance: String
     let classification: String
+    let conversationId: String?
+    let categories: [String]?
+    let conversationCount: Int?
+    let unreadCount: Int?
+    let topReactions: [String]?
+    let reactionsCount: Int?
+    let messageType: String?
+    let meetingStartDateTime: String?
+    let meetingEndDateTime: String?
+    let meetingTimeZone: String?
+    let meetingLocation: String?
+    let meetingMessageType: String?
+    let meetingIsAllDay: Bool?
+    let meetingShowAs: String?
+    let meetingResponse: String?
+    let meetingIsCancelled: Bool?
+    let meetingConflictCount: Int?
+    let lastVerb: String?
+    let isPinned: Bool?
+    let hasLinkAttachment: Bool?
 
     var inboxThread: InboxThread {
         let receivedDate = Self.parseDate(receivedDateTime)
@@ -180,8 +200,136 @@ private struct WorkIQMailMessage: Codable {
             isExternalSender: !senderEmail.lowercased().hasSuffix("@microsoft.com"),
             hasAttachment: hasAttachments,
             isFlagged: isFlagged,
-            profilePhotoURL: photoURL
+            isPinned: isPinned ?? false,
+            profilePhotoURL: photoURL,
+            meeting: meetingScenario,
+            txp: txpScenario,
+            isImportant: importance == "high",
+            categories: categories ?? [],
+            conversationCount: conversationCount ?? 1,
+            unreadCount: unreadCount ?? 0,
+            topReactions: topReactions ?? [],
+            reactionsCount: reactionsCount ?? 0,
+            lastVerb: Self.lastVerb(lastVerb),
+            hasLinkAttachment: hasLinkAttachment ?? false
         )
+    }
+
+    private var meetingScenario: MeetingScenario? {
+        let graphType = messageType ?? ""
+        guard graphType.contains("eventMessage") else { return nil }
+
+        let response = Self.meetingResponse(meetingResponse)
+        let isUpdate = subject.localizedCaseInsensitiveContains("update")
+            || preview.localizedCaseInsensitiveContains("[update]")
+
+        let kind: MeetingScenario.Kind
+        if graphType.contains("Cancellation")
+            || meetingMessageType == "meetingCancelled"
+            || meetingIsCancelled == true {
+            kind = .cancelled
+        } else if graphType.contains("Request") || meetingMessageType == "meetingRequest" {
+            if isUpdate {
+                kind = .updated
+            } else if (meetingConflictCount ?? 0) > 0 {
+                kind = .conflict
+            } else {
+                kind = .invitation
+            }
+        } else {
+            return nil
+        }
+
+        var scenario = MeetingScenario(
+            kind: kind,
+            title: subject,
+            dateLine: Self.meetingDateLine(
+                startValue: meetingStartDateTime,
+                endValue: meetingEndDateTime,
+                timeZoneValue: meetingTimeZone,
+                isAllDay: meetingIsAllDay == true
+            ),
+            location: meetingLocation,
+            organizer: senderName,
+            detail: Self.conflictDetail(meetingConflictCount ?? 0),
+            response: response
+        )
+        if kind == .updated, let location = meetingLocation, !location.isEmpty {
+            scenario = MeetingScenario(
+                kind: kind,
+                title: location,
+                dateLine: scenario.dateLine,
+                location: location,
+                organizer: senderName,
+                detail: scenario.detail,
+                response: response
+            )
+        }
+        return scenario
+    }
+
+    private var txpScenario: TxpScenario? {
+        guard !(messageType ?? "").contains("eventMessage") else { return nil }
+        let text = "\(subject) \(preview)".lowercased()
+
+        if text.contains("flight") || text.contains("boarding pass") || text.contains("airline itinerary") {
+            return TxpScenario(
+                kind: .flightReservation,
+                title: "Flight Reservation",
+                detail: nil,
+                actionTitle: "View"
+            )
+        }
+        if text.contains("parcel") || text.contains("package") || text.contains("delivery expected")
+            || text.contains("has shipped") {
+            return TxpScenario(
+                kind: .parcelDelivery,
+                title: "Parcel Delivery",
+                detail: nil,
+                actionTitle: text.contains("track") ? "Track" : "View"
+            )
+        }
+        if text.contains("rental car") || text.contains("car reservation") {
+            return TxpScenario(
+                kind: .rentalCarReservation,
+                title: "Car Reservation",
+                detail: nil,
+                actionTitle: "View"
+            )
+        }
+        if text.contains("hotel reservation") || text.contains("lodging reservation") {
+            return TxpScenario(
+                kind: .lodgingReservation,
+                title: "Lodging Reservation",
+                detail: nil,
+                actionTitle: "View"
+            )
+        }
+        if text.contains("restaurant reservation") || text.contains("dinner reservation") {
+            return TxpScenario(
+                kind: .foodReservation,
+                title: "Food Reservation",
+                detail: nil,
+                actionTitle: "View"
+            )
+        }
+        if text.contains("invoice") && (text.contains("due") || text.contains("payment")) {
+            return TxpScenario(
+                kind: .invoice,
+                title: "Invoice",
+                detail: nil,
+                actionTitle: "View"
+            )
+        }
+        if text.contains("event reservation") || text.contains("ticket confirmation") {
+            return TxpScenario(
+                kind: .eventReservation,
+                title: "Event Reservation",
+                detail: nil,
+                actionTitle: "View"
+            )
+        }
+        return nil
     }
 
     private static func recipientSummary(_ recipients: [String]) -> String {
@@ -222,6 +370,95 @@ private struct WorkIQMailMessage: Codable {
             return "Yesterday"
         }
         return date.formatted(.dateTime.weekday(.abbreviated))
+    }
+
+    private static func meetingDateLine(
+        startValue: String?,
+        endValue: String?,
+        timeZoneValue: String?,
+        isAllDay: Bool
+    ) -> String {
+        guard let startValue, let start = parseGraphDate(startValue, timeZoneValue: timeZoneValue) else {
+            return "Meeting invitation"
+        }
+
+        if isAllDay {
+            let startText = start.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+            guard let endValue,
+                  let end = parseGraphDate(endValue, timeZoneValue: timeZoneValue),
+                  end > start else {
+                return startText
+            }
+            let displayEnd = Calendar.current.date(byAdding: .day, value: -1, to: end) ?? end
+            let endText = displayEnd.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+            let days = max(1, Calendar.current.dateComponents([.day], from: start, to: end).day ?? 1)
+            return "\(startText) → \(endText) (\(days)d)"
+        }
+
+        let dateText: String
+        if Calendar.current.isDateInTomorrow(start) {
+            dateText = "Tomorrow"
+        } else {
+            dateText = start.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+        }
+
+        let timeText = start.formatted(date: .omitted, time: .shortened)
+        guard let endValue,
+              let end = parseGraphDate(endValue, timeZoneValue: timeZoneValue),
+              end > start else {
+            return "\(dateText), \(timeText)"
+        }
+
+        let duration = Int(end.timeIntervalSince(start) / 60)
+        return "\(dateText), \(timeText) (\(duration)m)"
+    }
+
+    private static func parseGraphDate(_ value: String, timeZoneValue: String?) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = timeZoneValue.flatMap(TimeZone.init(identifier:)) ?? .current
+        for format in [
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd'T'HH:mm:ss",
+        ] {
+            formatter.dateFormat = format
+            if let date = formatter.date(from: value) {
+                return date
+            }
+        }
+        return nil
+    }
+
+    private static func meetingResponse(_ value: String?) -> MeetingScenario.Response {
+        switch value?.lowercased() {
+        case "accepted", "organizer":
+            return .accepted
+        case "tentativelyaccepted", "tentative":
+            return .tentative
+        case "declined":
+            return .declined
+        default:
+            return .none
+        }
+    }
+
+    private static func conflictDetail(_ count: Int) -> String {
+        guard count > 0 else { return "" }
+        return count == 1 ? "1 Conflict" : "\(count) Conflicts"
+    }
+
+    private static func lastVerb(_ value: String?) -> MessageLastVerb? {
+        switch value {
+        case "102":
+            return .reply
+        case "103":
+            return .replyAll
+        case "104":
+            return .forward
+        default:
+            return nil
+        }
     }
 }
 

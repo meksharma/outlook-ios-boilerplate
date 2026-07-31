@@ -3,7 +3,7 @@
 // Layer 2 — Outlook Mobile semantic color tokens. Each resolves across the 5
 // Figma modes (light / dark / iOS-elevated / light-HC / dark-HC) via iOS traits,
 // referencing Layer 1 primitives — see odsDynamic in ColorDynamic.swift.
-// Source: ods/iOS/Foundations/Colors/outlook-semantic-1.0.yaml
+// Source: ods/ios/Foundations/Colors/outlook-semantic-1.0.yaml
 
 import SwiftUI
 
