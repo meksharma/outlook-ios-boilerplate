@@ -26,6 +26,8 @@ struct CopilotSheetOverlayBeta: View {
     @Binding var isShowing: Bool
 
     @State private var promptText: String = ""
+    @State private var workIQResponse: WorkIQResponseState = .idle
+    @AppStorage("workIQEnabled") private var workIQEnabled: Bool = false
 
     private let suggestions: [String] = [
         "Triage top emails",
@@ -33,7 +35,9 @@ struct CopilotSheetOverlayBeta: View {
         "Recap meeting",
     ]
 
-    private let sheetHeight: CGFloat = 355
+    private var sheetHeight: CGFloat {
+        workIQResponse == .idle ? 355 : 600
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -84,6 +88,10 @@ struct CopilotSheetOverlayBeta: View {
             }
             .padding(.horizontal, 16)
 
+            WorkIQResponseView(state: workIQResponse)
+                .padding(.horizontal, 16)
+                .padding(.top, workIQResponse == .idle ? 0 : 12)
+
             // 12px gap to the input bar — matches the inter-pill spacing.
             inputBar
                 .padding(.horizontal, 16)
@@ -118,7 +126,9 @@ struct CopilotSheetOverlayBeta: View {
     }
 
     private func suggestionPill(_ title: String) -> some View {
-        Button(action: {}) {
+        Button {
+            submitToWorkIQ(title)
+        } label: {
             Text(title)
                 .odsBody2Strong()
                 .foregroundStyle(Color.odsNeutralForeground1)
@@ -145,6 +155,10 @@ struct CopilotSheetOverlayBeta: View {
                 .tracking(-0.43)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
+                .submitLabel(.send)
+                .onSubmit {
+                    submitToWorkIQ(promptText)
+                }
 
             trailingActions
         }
@@ -175,6 +189,23 @@ struct CopilotSheetOverlayBeta: View {
                     .background(Circle().fill(Color.odsBrandBackground1))
             }
             .buttonStyle(.plain)
+        }
+    }
+
+    private func submitToWorkIQ(_ question: String) {
+        let trimmedQuestion = question.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard workIQEnabled, !trimmedQuestion.isEmpty else { return }
+
+        workIQResponse = .loading
+        Task {
+            do {
+                let answer = try await WorkIQClient().ask(trimmedQuestion)
+                workIQResponse = .answer(answer)
+            } catch {
+                workIQResponse = .failure(
+                    "Work IQ is unavailable. Start `node Tools/workiq_bridge.js` on your Mac, then try again.\n\n\(error.localizedDescription)"
+                )
+            }
         }
     }
 }

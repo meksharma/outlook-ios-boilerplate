@@ -1,0 +1,15 @@
+{
+  "name": "outlook-ios-workiq-bridge",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local app adapter for the hosted Microsoft Work IQ MCP service.",
+  "scripts": {
+    "start": "node workiq_bridge.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0"
+  },
+  "overrides": {
+    "@hono/node-server": "2.0.11"
+  }
+}
