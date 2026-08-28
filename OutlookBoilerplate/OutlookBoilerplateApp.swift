@@ -11,12 +11,20 @@ import UIKit
 struct OutlookBoilerplateApp: App {
     init() {
         OutlookBackdrop.applyToFluentTheme()
-        UIViewController.swizzleStatusBarStyleForLightContent()
+        if !ProcessInfo.processInfo.arguments.contains("--loader-demo") {
+            UIViewController.swizzleStatusBarStyleForLightContent()
+        }
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if ProcessInfo.processInfo.arguments.contains("--loader-demo") {
+                    LoaderDemoView()
+                } else {
+                    ContentView()
+                }
+            }
                 .background(StatusBarRefresher())
         }
     }

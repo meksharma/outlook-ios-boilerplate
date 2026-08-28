@@ -38,6 +38,8 @@ struct ContentView: View {
     /// stack. Hides the Compose FAB so the reading-pane DAB owns the bottom
     /// chrome (matches dev build).
     @State private var readingPanePresented = false
+    @State private var referencesSheet: OutlookReferencesSheetModel?
+    @State private var actionChatSheet: OutlookActionChatSheetModel?
     @AppStorage("appColorScheme") private var appColorScheme: String = "light"
     /// Production vs Beta build variant (set in the Designer Tools sheet).
     /// Drives which Copilot chat sheet renders.
@@ -103,6 +105,7 @@ struct ContentView: View {
                 CopilotSheetOverlay(isShowing: $showingCopilotSheet)
                     .zIndex(2)
             }
+
         }
         .animation(MotionComponent.sideDrawer.enterAnimation, value: showingSideDrawer)
         .animation(MotionComponent.copilotSheet.enterAnimation, value: showingCopilotSheet)
@@ -114,6 +117,22 @@ struct ContentView: View {
         }
         .sheet(item: $bugReportRequest) { request in
             BugReportForm(context: request.context, screenshot: request.screenshot)
+        }
+        .sheet(item: $referencesSheet) { model in
+            OutlookReferencesSheetPresentation(
+                model: model,
+                onDismiss: { referencesSheet = nil }
+            )
+        }
+        .sheet(item: $actionChatSheet) { model in
+            OutlookActionChatSheet(
+                model: model,
+                onDismiss: { actionChatSheet = nil }
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(34)
+            .presentationContentInteraction(.resizes)
         }
         .fullScreenCover(isPresented: $showingSearch) {
             SearchScreen(onDismiss: { showingSearch = false })
@@ -154,7 +173,17 @@ struct ContentView: View {
                 showingCopilotSheet: $showingCopilotSheet,
                 showingComposeSheet: $showingComposeSheet,
                 showingSearch: $showingSearch,
-                readingPanePresented: $readingPanePresented
+                readingPanePresented: $readingPanePresented,
+                onOpenReferences: { references in
+                    referencesSheet = OutlookReferencesSheetModel(
+                        references: references
+                    )
+                },
+                onCardAction: { action in
+                    actionChatSheet = OutlookActionChatSheetModel(
+                        action: action
+                    )
+                }
             )
         case .calendar:
             CalendarScreen(onSearchTap: { showingSearch = true })

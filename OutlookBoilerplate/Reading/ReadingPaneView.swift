@@ -24,8 +24,11 @@ struct ReadingPaneView: View {
     let thread: InboxThread
     let usesWorkIQ: Bool
     let onBack: () -> Void
+    let onOpenReferences: ([OutlookCardReference]) -> Void
+    let onCardAction: (OutlookCardAction) -> Void
     @State private var workIQBody: WorkIQMessageBody?
     @State private var bodyError: String?
+    @AppStorage("cardFrameworkEnabled") private var cardFrameworkEnabled: Bool = false
 
     var body: some View {
         ScrollView {
@@ -34,6 +37,14 @@ struct ReadingPaneView: View {
                 Divider()
                 if let meeting = thread.meeting {
                     MeetingScenarioCard(meeting: meeting)
+                }
+                if cardFrameworkEnabled {
+                    SummarizeCard(
+                        onOpenReferences: onOpenReferences,
+                        onAction: onCardAction
+                    )
+                    .padding(.horizontal, .odsSize160)
+                    .padding(.top, .odsSize160)
                 }
                 bodyContent
                 if !thread.attachments.isEmpty {
@@ -47,16 +58,7 @@ struct ReadingPaneView: View {
         .navigationBarBackButtonHidden()
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(action: onBack) {
-                    Image(.arrowLeft24Regular)
-                        .renderingMode(.template)
-                        .foregroundStyle(Color.odsNeutralForeground1)
-                        .frame(width: 44, height: 44)
-                        .glassEffectCompat(interactive: true, in: Circle())
-                }
-                .buttonStyle(.plain)
-                .hotspotTarget()
-                .accessibilityLabel("Back")
+                backButton
             }
         }
         .task(id: thread.id) {
@@ -68,6 +70,45 @@ struct ReadingPaneView: View {
         // by the `.ignoresSafeArea(.container, edges: .bottom)` on
         // `currentTabContent`. Visibility is driven by the
         // `readingPanePresented` binding bubbled up from InboxView.
+    }
+
+    @ViewBuilder
+    private var backButton: some View {
+        if cardFrameworkEnabled {
+            Button(action: onBack) {
+                Image(.chevronLeft28Regular)
+                    .renderingMode(.template)
+                    .resizable()
+                    .foregroundStyle(Color.odsNeutralForeground1)
+                    .frame(width: 10.25, height: 19)
+                    .frame(width: 36, height: 36)
+            }
+            .frame(width: 44, height: 44)
+            .background(Color.odsNeutralBackground1, in: Circle())
+            .shadow(
+                color: Color.black.opacity(0.02),
+                radius: 20,
+                y: 4
+            )
+            .shadow(
+                color: Color.black.opacity(0.1),
+                radius: 10,
+                y: 4
+            )
+            .buttonStyle(.plain)
+            .accessibilityLabel("Back")
+        } else {
+            Button(action: onBack) {
+                Image(.arrowLeft24Regular)
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.odsNeutralForeground1)
+                    .frame(width: 44, height: 44)
+                    .glassEffectCompat(interactive: true, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .hotspotTarget()
+            .accessibilityLabel("Back")
+        }
     }
 
     private var senderBlock: some View {
@@ -147,7 +188,13 @@ struct ReadingPaneView: View {
 
 #Preview {
     NavigationStack {
-        ReadingPaneView(thread: sampleThreads[0], usesWorkIQ: false, onBack: {})
+        ReadingPaneView(
+            thread: sampleThreads[0],
+            usesWorkIQ: false,
+            onBack: {},
+            onOpenReferences: { _ in },
+            onCardAction: { _ in }
+        )
     }
     .fluentTheme(FluentTheme.shared)
 }

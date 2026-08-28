@@ -22,6 +22,8 @@ struct InboxView: View {
     /// Bubbles ReadingPaneView push/pop up to ContentView so the bottom-nav
     /// Compose FAB can hide while the user is inside a thread.
     @Binding var readingPanePresented: Bool
+    let onOpenReferences: ([OutlookCardReference]) -> Void
+    let onCardAction: (OutlookCardAction) -> Void
 
     @State private var navigationPath = NavigationPath()
 
@@ -48,7 +50,9 @@ struct InboxView: View {
                             if !navigationPath.isEmpty {
                                 navigationPath.removeLast()
                             }
-                        }
+                        },
+                        onOpenReferences: onOpenReferences,
+                        onCardAction: onCardAction
                     )
                         .onAppear { readingPanePresented = true }
                         .onDisappear { readingPanePresented = false }
@@ -199,7 +203,9 @@ struct InboxView: View {
         showingCopilotSheet: .constant(false),
         showingComposeSheet: .constant(false),
         showingSearch: .constant(false),
-        readingPanePresented: .constant(false)
+        readingPanePresented: .constant(false),
+        onOpenReferences: { _ in },
+        onCardAction: { _ in }
     )
     .fluentTheme(FluentTheme.shared)
 }

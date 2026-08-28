@@ -41,9 +41,16 @@ public enum OutlookIcon: String, CaseIterable, Sendable {
     // Mail row + reading pane actions
     case mail24Regular             = "ic_fluent_mail_24_regular"
     case mail24Filled              = "ic_fluent_mail_24_filled"
+    case mail16Regular             = "ic_fluent_mail_16_regular"
+    case mail20Regular             = "ic_fluent_mail_20_regular"
     case arrowReply24Regular       = "ic_fluent_arrow_reply_24_regular"
     case delete24Regular           = "ic_fluent_delete_24_regular"
     case shield16Filled            = "ic_fluent_shield_16_filled"
+    case shieldLock16Regular       = "ic_fluent_shield_lock_16_regular"
+    case copy20Regular             = "ic_fluent_copy_20_regular"
+    case link16Regular             = "ic_fluent_link_16_regular"
+    case thumbLike20Regular        = "ic_fluent_thumb_like_20_regular"
+    case thumbDislike20Regular     = "ic_fluent_thumb_dislike_20_regular"
     case flag20Filled              = "ic_fluent_flag_20_filled"
     case pin20Filled               = "ic_fluent_pin_20_filled"
     case airplane24Filled          = "ic_fluent_airplane_24_filled"
@@ -53,6 +60,8 @@ public enum OutlookIcon: String, CaseIterable, Sendable {
     // Filter pill, chevrons
     case filter20Regular           = "ic_fluent_filter_20_regular"
     case chevronDown16Regular      = "ic_fluent_chevron_down_16_regular"
+    case chevronLeft28Regular      = "ic_fluent_chevron_left_28_regular"
+    case chevronUp16Regular        = "ic_fluent_chevron_up_16_regular"
     case chevronRight16Regular     = "ic_fluent_chevron_right_16_regular"
 
     // Compose toolbar
@@ -67,6 +76,9 @@ public enum OutlookIcon: String, CaseIterable, Sendable {
     case calendarAdd24Regular      = "ic_fluent_calendar_add_24_regular"
     case penSparkle24Regular       = "ic_fluent_pen_sparkle_24_regular"
     case chatSparkle24Regular      = "ic_fluent_chat_sparkle_24_regular"
+    case chat20Regular             = "ic_fluent_chat_20_regular"
+    case deviceEq24Regular         = "ic_fluent_device_eq_24_regular"
+    case textBulletListSquareSparkle20Regular = "ic_fluent_text_bullet_list_square_sparkle_20_regular"
     case textBulletListSquareSparkle24Regular = "ic_fluent_text_bullet_list_square_sparkle_24_regular"
 
     // Side drawer — folders, account chrome

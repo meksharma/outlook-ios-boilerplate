@@ -298,6 +298,9 @@ struct DesignerToolsSheet: View {
     /// Flashes every interactive hit region after a tap misses all targets.
     @AppStorage("hotspotHintsEnabled") private var hotspotHintsEnabled: Bool = false
 
+    /// Enables the opt-in Card Framework prototype in the Reading Pane.
+    @AppStorage("cardFrameworkEnabled") private var cardFrameworkEnabled: Bool = false
+
     private var isDarkMode: Bool { appColorScheme == "dark" }
 
     var body: some View {
@@ -333,6 +336,15 @@ struct DesignerToolsSheet: View {
                             isActive: workIQEnabled
                         ) {
                             workIQEnabled.toggle()
+                        }
+
+                        ControlPill(
+                            icon: "rectangle.stack.fill",
+                            title: "Card Framework",
+                            description: cardFrameworkEnabled ? "On" : "Off",
+                            isActive: cardFrameworkEnabled
+                        ) {
+                            cardFrameworkEnabled.toggle()
                         }
 
                         ControlPill(
