@@ -1,0 +1,19 @@
+.DS_Store
+
+# Xcode user settings and build output
+xcuserdata/
+*.xcuserstate
+build/
+DerivedData/
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Editor files
+.vscode/
+*.swp
+*~
