@@ -301,6 +301,9 @@ struct DesignerToolsSheet: View {
     /// Enables the opt-in Card Framework prototype in the Reading Pane.
     @AppStorage("cardFrameworkEnabled") private var cardFrameworkEnabled: Bool = false
 
+    /// Selects the visual treatment for cards shown in the Reading Pane.
+    @AppStorage("cardFrameworkTheme") private var cardFrameworkTheme: String = OutlookCardTheme.neutral.rawValue
+
     private var isDarkMode: Bool { appColorScheme == "dark" }
 
     var body: some View {
@@ -345,6 +348,14 @@ struct DesignerToolsSheet: View {
                             isActive: cardFrameworkEnabled
                         ) {
                             cardFrameworkEnabled.toggle()
+                        }
+
+                        if cardFrameworkEnabled {
+                            segmentedSection(title: "Card Theme", selection: $cardFrameworkTheme) {
+                                Text("Blue").tag(OutlookCardTheme.brand.rawValue)
+                                Text("Neutral").tag(OutlookCardTheme.neutral.rawValue)
+                            }
+                            .padding(.horizontal, 8)
                         }
 
                         ControlPill(

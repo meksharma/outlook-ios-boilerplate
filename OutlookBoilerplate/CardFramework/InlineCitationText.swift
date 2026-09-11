@@ -5,6 +5,7 @@ import UIKit
 struct InlineCitationText: UIViewRepresentable {
     let text: String
     let referenceCount: Int
+    let tint: Color
     let onOpen: () -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -106,7 +107,7 @@ struct InlineCitationText: UIViewRepresentable {
         return renderer.image { _ in
             UIImage(.mail16Regular)?
                 .withTintColor(
-                    UIColor(Color.odsBrandForegroundTint),
+                    UIColor(tint),
                     renderingMode: .alwaysOriginal
                 )
                 .draw(in: CGRect(x: 8, y: 5, width: 12, height: 10))
@@ -124,7 +125,7 @@ struct InlineCitationText: UIViewRepresentable {
                 ),
                 withAttributes: [
                     .font: font,
-                    .foregroundColor: UIColor(Color.odsBrandForegroundTint)
+                    .foregroundColor: UIColor(tint)
                 ]
             )
         }

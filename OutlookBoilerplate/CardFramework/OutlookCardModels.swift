@@ -1,6 +1,11 @@
 import Foundation
 import OutlookBackdrop
 
+enum OutlookCardTheme: String, CaseIterable {
+    case brand
+    case neutral
+}
+
 enum OutlookCardState: String, CaseIterable, Identifiable {
     case preGeneration
     case preGenerationAlternate

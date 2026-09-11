@@ -29,6 +29,7 @@ struct ReadingPaneView: View {
     @State private var workIQBody: WorkIQMessageBody?
     @State private var bodyError: String?
     @AppStorage("cardFrameworkEnabled") private var cardFrameworkEnabled: Bool = false
+    @AppStorage("cardFrameworkTheme") private var cardFrameworkTheme: String = OutlookCardTheme.neutral.rawValue
 
     var body: some View {
         ScrollView {
@@ -40,6 +41,7 @@ struct ReadingPaneView: View {
                 }
                 if cardFrameworkEnabled {
                     SummarizeCard(
+                        theme: OutlookCardTheme(rawValue: cardFrameworkTheme) ?? .neutral,
                         onOpenReferences: onOpenReferences,
                         onAction: onCardAction
                     )

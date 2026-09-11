@@ -4,6 +4,7 @@ import OutlookBackdrop
 struct OutlookCardView: View {
     let state: OutlookCardState
     let content: OutlookCardContent
+    var theme: OutlookCardTheme = .brand
     var streamingStage: Int = .max
     var onGenerate: () -> Void = {}
     var onToggleExpansion: () -> Void = {}
@@ -60,8 +61,17 @@ struct OutlookCardView: View {
         .padding(.horizontal, .odsSize160)
         .padding(.vertical, .odsSize120)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.odsBrandBackgroundTint2)
+        .background(cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: cardRadius, style: .continuous))
+    }
+
+    private var cardBackground: Color {
+        switch theme {
+        case .brand:
+            Color.odsBrandBackgroundTint2
+        case .neutral:
+            Color.odsNeutralBackground5
+        }
     }
 
     private var cardRadius: CGFloat {
@@ -83,7 +93,7 @@ struct OutlookCardView: View {
 
                 Spacer(minLength: 0)
             }
-            .foregroundStyle(Color.odsBrandForegroundTint)
+            .foregroundStyle(commandForeground)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -108,10 +118,19 @@ struct OutlookCardView: View {
                     Text(content.commandTitle)
                         .odsBody2Strong()
                 }
-                .foregroundStyle(Color.odsBrandForegroundTint)
+                .foregroundStyle(commandForeground)
             }
             .buttonStyle(.plain)
             .accessibilityHint("Creates a summary of this message")
+        }
+    }
+
+    private var commandForeground: Color {
+        switch theme {
+        case .brand:
+            Color.odsBrandForegroundTint
+        case .neutral:
+            Color.odsNeutralForeground1
         }
     }
 
@@ -225,8 +244,8 @@ struct OutlookCardView: View {
             .overlay(alignment: .bottom) {
                 LinearGradient(
                     colors: [
-                        Color.odsBrandBackgroundTint2.opacity(0),
-                        Color.odsBrandBackgroundTint2
+                        cardBackground.opacity(0),
+                        cardBackground
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -262,6 +281,7 @@ struct OutlookCardView: View {
             InlineCitationText(
                 text: item.text,
                 referenceCount: citation.references.count,
+                tint: citationForeground,
                 onOpen: {
                     onOpenCitation(citation.references)
                 }
@@ -298,8 +318,8 @@ struct OutlookCardView: View {
             .overlay(alignment: .bottom) {
                 LinearGradient(
                     colors: [
-                        Color.odsBrandBackgroundTint2.opacity(0),
-                        Color.odsBrandBackgroundTint2
+                        cardBackground.opacity(0),
+                        cardBackground
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -328,20 +348,56 @@ struct OutlookCardView: View {
                                 .accessibilityHidden(true)
                         }
                     }
-                    .foregroundStyle(Color.odsBrandForegroundTint)
+                    .foregroundStyle(actionForeground)
                     .padding(.horizontal, .odsSize120)
                     .frame(minHeight: 34)
-                    .background(Color.odsBrandBackgroundTint1)
+                    .background(actionBackground)
                     .clipShape(
                         RoundedRectangle(
                             cornerRadius: Metrics.pillRadius,
                             style: .continuous
                         )
                     )
+                    .overlay {
+                        if theme == .neutral {
+                            RoundedRectangle(
+                                cornerRadius: Metrics.pillRadius,
+                                style: .continuous
+                            )
+                            .strokeBorder(Color.odsNeutralStroke1, lineWidth: 0.5)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(action.title)
             }
+        }
+    }
+
+    private var actionForeground: Color {
+        switch theme {
+        case .brand:
+            Color.odsBrandForegroundTint
+        case .neutral:
+            Color.odsNeutralStrokeAccessible
+        }
+    }
+
+    private var citationForeground: Color {
+        switch theme {
+        case .brand:
+            Color.odsBrandForegroundTint
+        case .neutral:
+            Color.odsNeutralForeground2
+        }
+    }
+
+    private var actionBackground: Color {
+        switch theme {
+        case .brand:
+            Color.odsBrandBackgroundTint1
+        case .neutral:
+            Color.odsNeutralBackground4
         }
     }
 
@@ -384,7 +440,7 @@ struct OutlookCardView: View {
                         .renderingMode(.template)
                         .resizable()
                         .frame(width: 16, height: 16)
-                        .foregroundStyle(Color.odsBrandForegroundTint)
+                        .foregroundStyle(sourcesForeground)
 
                     Text("Sources")
                         .odsCaption2()
@@ -402,6 +458,15 @@ struct OutlookCardView: View {
         }
         .foregroundStyle(Color.odsNeutralForeground2)
         .buttonStyle(.plain)
+    }
+
+    private var sourcesForeground: Color {
+        switch theme {
+        case .brand:
+            Color.odsBrandForegroundTint
+        case .neutral:
+            Color.odsNeutralForeground2
+        }
     }
 
     private var errorFooter: some View {

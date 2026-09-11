@@ -5,15 +5,18 @@ struct SummarizeCard: View {
     @State private var state: OutlookCardState
     @State private var streamingStage = 0
     @State private var generationTask: Task<Void, Never>?
+    private let theme: OutlookCardTheme
     private let onOpenReferences: ([OutlookCardReference]) -> Void
     private let onAction: (OutlookCardAction) -> Void
 
     init(
         initialState: OutlookCardState = .preGeneration,
+        theme: OutlookCardTheme = .neutral,
         onOpenReferences: @escaping ([OutlookCardReference]) -> Void = { _ in },
         onAction: @escaping (OutlookCardAction) -> Void = { _ in }
     ) {
         _state = State(initialValue: initialState)
+        self.theme = theme
         self.onOpenReferences = onOpenReferences
         self.onAction = onAction
     }
@@ -22,6 +25,7 @@ struct SummarizeCard: View {
         OutlookCardView(
             state: state,
             content: .summarize,
+            theme: theme,
             streamingStage: streamingStage,
             onGenerate: generateSummary,
             onToggleExpansion: toggleExpansion,
