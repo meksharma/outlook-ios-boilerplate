@@ -97,6 +97,7 @@ struct OutlookCardView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
         .accessibilityHint("Creates a summary of this message")
     }
 
@@ -121,6 +122,7 @@ struct OutlookCardView: View {
                 .foregroundStyle(commandForeground)
             }
             .buttonStyle(.plain)
+            .hotspotTarget()
             .accessibilityHint("Creates a summary of this message")
         }
     }
@@ -142,6 +144,7 @@ struct OutlookCardView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .hotspotTarget()
             .accessibilityLabel(
                 "\(content.generatingTitle), \(isExpanded ? "expanded" : "collapsed")"
             )
@@ -204,6 +207,7 @@ struct OutlookCardView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .hotspotTarget()
         .accessibilityLabel("\(content.title), \(isExpanded ? "expanded" : "collapsed")")
         .accessibilityHint(isExpanded ? "Collapses the card" : "Expands the card")
     }
@@ -220,6 +224,7 @@ struct OutlookCardView: View {
                 .font(.odsBody2Strong)
                 .foregroundStyle(Color.odsBrandForegroundTint)
                 .buttonStyle(.plain)
+                .hotspotTarget()
         }
     }
 
@@ -286,6 +291,7 @@ struct OutlookCardView: View {
                     onOpenCitation(citation.references)
                 }
             )
+            .hotspotTarget()
         } else {
             Text(item.text)
                 .font(.odsBody2)
@@ -369,6 +375,7 @@ struct OutlookCardView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .hotspotTarget()
                 .accessibilityLabel(action.title)
             }
         }
@@ -447,6 +454,7 @@ struct OutlookCardView: View {
                 }
             }
             .accessibilityLabel("Open summary sources")
+            .hotspotTarget()
 
             iconButton(.copy20Regular, label: "Copy summary", action: onCopy)
             iconButton(.thumbLike20Regular, label: "Helpful") {
@@ -515,6 +523,7 @@ struct OutlookCardView: View {
                 .contentShape(Rectangle())
         }
         .accessibilityLabel(label)
+        .hotspotTarget()
     }
 }
 
